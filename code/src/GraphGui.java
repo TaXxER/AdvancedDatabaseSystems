@@ -58,13 +58,13 @@ public class GraphGui extends ApplicationFrame{
 			//					"pegel_andelfingen2",
 			//					null);
 			JdbcYIntervalSeries timeseries = new JdbcYIntervalSeries("Pegel Andelfingen2",
-					"jdbc:mysql://localhost:3306/group01",
+					"jdbc:mysql://localhost:3306/ads",
 					"com.mysql.jdbc.Driver",
-					"root", 
-					"sensor01",
+					"ads_account", 
+					"adsisgaaf",
 					"timed",
 					"PEGEL",
-					"pegel_andelfingen2",
+					"dataset_1",
 					null);
 			Range range = timeseries.getDomainRange();
 			timeseries.update((new Double(range.getLowerBound())).longValue(), (new Double(range.getLength())).longValue());
