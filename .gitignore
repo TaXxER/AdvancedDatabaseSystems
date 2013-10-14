@@ -3,7 +3,7 @@
 *.bbl
 *.blg
 *.log
-*.pdf
+/report/*.pdf
 *.synctex.gz
 *.out
 *.dvi
