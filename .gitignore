@@ -1,3 +1,13 @@
+# LaTeX temp files
+*.aux
+*.bbl
+*.blg
+*.log
+*.pdf
+*.synctex.gz
+*.out
+*.dvi
+
 # Java
 *.class
 
