@@ -13,6 +13,5 @@
 
 # Eclipse
 .metadata
-.classpath
+code/.classpath
 .project
-
