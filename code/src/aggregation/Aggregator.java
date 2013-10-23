@@ -24,17 +24,17 @@ public class Aggregator {
 			int b = 60;
 			int counter = 60;
 			while (counter <= NUM_FACTORS){
-				multiples.add(counter);
+				multiples.add(counter/60);
 				counter += b;			
 			}
 			
 			// Define set of queries
 			//List<Integer> Q = new ArrayList<Integer>(multiples);
 			List<Integer> Q = new ArrayList<Integer>();
-			Q.add(180);
-			Q.add(360);
-			Q.add(540);
-			Q.add(120000);
+			Q.add(2);
+			Q.add(3);
+			Q.add(4);
+			Q.add(5);
 			
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
@@ -57,7 +57,7 @@ public class Aggregator {
 				Y[j] = model.addVar(0.0, 1.0, 1.0, GRB.BINARY, "Yj");
 			}
 			
-			// Optimization function
+			// Objective function
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
 					L[i][j] = Q.get(i)%A.get(j) == 0 ? 0:GRB.INFINITY;
@@ -67,6 +67,17 @@ public class Aggregator {
 			
 			System.out.println("Update model");
 			model.update();
+			
+			// Objective function
+			GRBLinExpr objective = new GRBLinExpr();
+			for(int i=0;i<Q.size();i++){
+				for(int j=0;j<A.size();j++){
+					objective.addTerm(1.0, X[i][j]);
+				}
+			}
+
+			model.set(GRB.IntAttr.ModelSense, 1);
+			model.setObjective(objective);
 			
 			System.out.println("Define constraints");
 			// Constraint line 1
@@ -83,6 +94,8 @@ public class Aggregator {
 			
 			// Constraint line 2
 			// All pre-aggregation levels j in A
+			System.out.println("X[0]:"+X[0].length);
+			System.out.println("X:"+X.length);
 			for(int j=0;j<X[0].length;j++){
 				GRBLinExpr expr = new GRBLinExpr();
 				// The total number of 
@@ -106,16 +119,21 @@ public class Aggregator {
 			model.update();
 			System.out.println("Start optimization");
 			model.optimize();
-			System.out.println("Optimization finished");
-			
+//			System.out.println("Optimization finished");
+//			
 			List<Integer> factors = new ArrayList<Integer>();
 			double[] results = model.get(GRB.DoubleAttr.X, Y);
 			for(int i=0;i<results.length;i++){
-				System.out.println("result["+i+"]:"+results[i]);
+				System.out.println("factor["+i+"]:"+results[i]);
 				if(results[i]==1.0)
 					factors.add(i);
 			}
-			System.out.println("factors: "+factors);
+			double[][] result = model.get(GRB.DoubleAttr.X, X);
+//			for(int i=0;i<result.length;i++){
+//				for(int j=0;j<result[i].length;j++)
+//				System.out.println("result["+i+"]["+j+"]"+result[i][j]);
+//			}
+//			System.out.println("factors: "+factors);
 		}catch(GRBException e){
 			System.out.println("Error code: "+e.getErrorCode()+". "+e.getMessage());
 		}
