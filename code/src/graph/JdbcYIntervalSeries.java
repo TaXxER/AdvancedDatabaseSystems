@@ -190,6 +190,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 					// this corresponds to min and max
 					
 					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-extent/1000)+" and "+xAttribute+" <= "+(start/1000+2*extent/1000)+" group by "+xAttribute+" div "+factor/1000;
+
 					st = con.createStatement();
 					long starttime = System.currentTimeMillis();
 					ResultSet rs = st.executeQuery(query);
