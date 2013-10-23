@@ -34,10 +34,18 @@ public class Aggregator {
 			GRBModel model = new GRBModel(env);
 			model.set(GRB.StringAttr.ModelName, "factors");
 		
+			// Costs for executing Qi with level Aj			
+			Double[][] L = new Double[Q.size()][A.size()];
+			// Binary containing whether Aj answers Qi
+			GRBVar[][] X = new GRBVar[Q.size()][A.size()];
+			// Binary whether Aj is part of the solution
+			GRBVar[]   Y = new GRBVar[A.size()];
+			
+			for(int j=0;j<A.size();j++){
+				Y[j] = model.addVar(0.0, 1.0, 1.0, GRB.BINARY, "Yj");
+			}
 			
 			// Optimization function
-			Double[][] L = new Double[Q.size()][A.size()];
-			GRBVar[][] X = new GRBVar[Q.size()][A.size()];
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
 					L[i][j] = Q.get(j)%A.get(i) == 0 ? 0:GRB.INFINITY;
@@ -46,12 +54,28 @@ public class Aggregator {
 			}
 			
 			// Constraint line 1
+			// All queries i in Q
 			for(int i=0;i<X.length;i++){
 				GRBLinExpr expr = new GRBLinExpr();
+				// The total number of pre-aggregation levels that answer it
 				for(int j=0;j<X[i].length;j++){
 					expr.addTerm(1.0,X[i][j]);
 				}
+				// Must be exactly one
 				model.addConstr(expr, GRB.EQUAL, 1.0, "line1");
+			}
+			
+			// Constraint line 2
+			// All pre-aggregation levels j in A
+			for(int j=0;j<X[0].length;j++){
+				GRBLinExpr expr = new GRBLinExpr();
+				// The total number of 
+				for(int i=0;i<X.length;i++){
+					expr.addTerm(1.0, X[i][j]);
+				}
+				GRBLinExpr max = new GRBLinExpr();
+				max.addTerm((double)Q.size(), Y[j]);
+				model.addConstr(expr, GRB.LESS_EQUAL, max, "line2");
 			}
 			
 			// Integrate variables into model
