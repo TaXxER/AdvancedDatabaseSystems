@@ -127,8 +127,8 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			if(constraint!=null && !constraint.isEmpty()) query+= " where "+constraint;
 			ResultSet rs = st.executeQuery(query);
 			rs.next();
-			minimumItemCount = rs.getLong(1);
-			maximumItemCount = rs.getLong(2);
+			minimumItemCount = rs.getLong(1)*1000;
+			maximumItemCount = rs.getLong(2)*1000;
 			//			update(minimumItemCount,maximumItemCount);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -188,14 +188,15 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			try {
 //				if (quantile==0){
 					// this corresponds to min and max
-					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start)+" and "+xAttribute+" <= "+(start+extent)+" group by "+xAttribute+" div "+factor;
+					
+					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-extent/1000)+" and "+xAttribute+" <= "+(start/1000+2*extent/1000)+" group by "+xAttribute+" div "+factor/1000;
 					st = con.createStatement();
 					long starttime = System.currentTimeMillis();
 					ResultSet rs = st.executeQuery(query);
 //					System.out.println(","+(System.currentTimeMillis()-starttime));
 					long prevTime=0;
 					while(rs.next()){
-						long timed = rs.getLong(1);
+						long timed = rs.getLong(1)*1000;
 						double pegelAvg = rs.getDouble(3);
 						double pegelLow = rs.getDouble(4);
 						double pegelHigh = rs.getDouble(5);
