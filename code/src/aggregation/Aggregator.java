@@ -14,7 +14,7 @@ public class Aggregator {
 	public static final Integer NUM_SECONDS 		= 145130880;
 	public static final Integer MAX_RESOLUTION  	= 600;
 	public static final Integer NUM_FACTORS	    	= NUM_SECONDS / MAX_RESOLUTION;
-	public static final Double	STORAGE_CONSTRAINT	= 1.0;
+	public static final Double	STORAGE_CONSTRAINT	= 0.05;
 	
 	public static void main(String[] args){
 		try{
@@ -32,6 +32,11 @@ public class Aggregator {
 			//List<Integer> Q = new ArrayList<Integer>(multiples);
 			List<Integer> Q = new ArrayList<Integer>();
 			Q.add(21);
+			Q.add(2);
+			Q.add(3);
+			Q.add(4);
+			Q.add(5);
+			Q.add(6);
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
 			System.out.println(A);
@@ -67,8 +72,8 @@ public class Aggregator {
 			
 			// Objective function
 			GRBLinExpr objective = new GRBLinExpr();
-			for(int i=0;i<Q.size();i++){
-				for(int j=0;j<A.size();j++){
+			for(int i=0;i<X.length;i++){
+				for(int j=0;j<X[i].length;j++){
 					objective.addTerm(L[i][j], X[i][j]);
 				}
 			}
@@ -106,8 +111,8 @@ public class Aggregator {
 			GRBLinExpr expr = new GRBLinExpr();
 			for(int j=0;j<X[0].length;j++){
 				expr.addTerm(1.0/A.get(j), Y[j]);
-//				System.out.println("storage: "+1.0/A.get(j));
-//				System.out.println("Aj: "+A.get(j));
+				System.out.println("storage: "+1.0/A.get(j));
+				System.out.println("Aj: "+A.get(j));
 			}
 			model.addConstr(expr, GRB.LESS_EQUAL, 1+STORAGE_CONSTRAINT, "line3");
 			
@@ -120,11 +125,10 @@ public class Aggregator {
 //			
 			List<Integer> factors = new ArrayList<Integer>();
 			double[] results = model.get(GRB.DoubleAttr.X, Y);
-//			for(int i=0;i<results.length;i++){
-//				System.out.println("factor["+i+"]:"+results[i]);
-//				if(results[i]==1.0)
-//					factors.add(i);
-//			}
+			for(int i=0;i<results.length;i++){
+				if(results[i]==1.0)
+					factors.add((i+1));
+			}
 //			double[][] result = model.get(GRB.DoubleAttr.X, X);
 //			for(int i=0;i<result.length;i++){
 //				for(int j=0;j<result[i].length;j++)
