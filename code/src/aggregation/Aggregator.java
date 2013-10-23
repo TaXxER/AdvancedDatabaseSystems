@@ -14,7 +14,7 @@ public class Aggregator {
 	public static final Integer NUM_SECONDS 		= 145130880;
 	public static final Integer MAX_RESOLUTION  	= 600;
 	public static final Integer NUM_FACTORS	    	= NUM_SECONDS / MAX_RESOLUTION;
-	public static final Double	STORAGE_CONSTRAINT	= 0.5;
+	public static final Double	STORAGE_CONSTRAINT	= 1.0;
 	
 	public static void main(String[] args){
 		try{
@@ -31,13 +31,10 @@ public class Aggregator {
 			// Define set of queries
 			//List<Integer> Q = new ArrayList<Integer>(multiples);
 			List<Integer> Q = new ArrayList<Integer>();
-			Q.add(2);
-			Q.add(3);
-			Q.add(4);
-			Q.add(5);
-			Q.add(6);
+			Q.add(21);
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
+			System.out.println(A);
 			
 			System.out.println("Create model");
 			// Model		
@@ -60,7 +57,7 @@ public class Aggregator {
 			// Objective function
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
-					L[i][j] = Q.get(i)%A.get(j) == 0 ? 0:GRB.INFINITY;
+					L[i][j] = Q.get(i)%A.get(j) == 0 ? Q.get(i)/A.get(j) :GRB.INFINITY;
 					X[i][j] = model.addVar(0.0, 1.0, L[i][j], GRB.BINARY, "Xij");
 				}
 			}
@@ -72,7 +69,7 @@ public class Aggregator {
 			GRBLinExpr objective = new GRBLinExpr();
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
-					objective.addTerm(1.0, X[i][j]);
+					objective.addTerm(L[i][j], X[i][j]);
 				}
 			}
 
@@ -94,8 +91,6 @@ public class Aggregator {
 			
 			// Constraint line 2
 			// All pre-aggregation levels j in A
-			System.out.println("X[0]:"+X[0].length);
-			System.out.println("X:"+X.length);
 			for(int j=0;j<X[0].length;j++){
 				GRBLinExpr expr = new GRBLinExpr();
 				// The total number of 
@@ -111,8 +106,8 @@ public class Aggregator {
 			GRBLinExpr expr = new GRBLinExpr();
 			for(int j=0;j<X[0].length;j++){
 				expr.addTerm(1.0/A.get(j), Y[j]);
-				System.out.println("storage: "+1.0/A.get(j));
-				System.out.println("Aj: "+A.get(j));
+//				System.out.println("storage: "+1.0/A.get(j));
+//				System.out.println("Aj: "+A.get(j));
 			}
 			model.addConstr(expr, GRB.LESS_EQUAL, 1+STORAGE_CONSTRAINT, "line3");
 			
