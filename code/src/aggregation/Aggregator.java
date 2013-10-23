@@ -1,4 +1,5 @@
 package aggregation;
+
 import gurobi.GRB;
 import gurobi.GRBEnv;
 import gurobi.GRBException;
@@ -8,12 +9,16 @@ import gurobi.GRBVar;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class Aggregator {
-	public static final Integer NUM_SECONDS 	= 145130880;
-	public static final Integer MAX_RESOLUTION  = 600;
-	public static final Integer NUM_FACTORS	    = NUM_SECONDS / MAX_RESOLUTION;
+	public static final Integer NUM_SECONDS 		= 145130880;
+	public static final Integer MAX_RESOLUTION  	= 600;
+	public static final Integer NUM_FACTORS	    	= NUM_SECONDS / MAX_RESOLUTION;
+	public static final Double	STORAGE_CONSTRAINT	= 0.05;
+	
 	public static void main(String[] args){
 		try{
+			System.out.println("Preamble");
 			// Calculate multiples of 60 up to NUM_FACTORS
 			List<Integer> multiples = new ArrayList<Integer>();
 			int b = 60;
@@ -24,16 +29,23 @@ public class Aggregator {
 			}
 			
 			// Define set of queries
-			List<Integer> Q = new ArrayList<Integer>(multiples);
+			//List<Integer> Q = new ArrayList<Integer>(multiples);
+			List<Integer> Q = new ArrayList<Integer>();
+			Q.add(180);
+			Q.add(360);
+			Q.add(540);
+			Q.add(120000);
 			
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
 			
+			System.out.println("Create model");
 			// Model		
 			GRBEnv env = new GRBEnv();
 			GRBModel model = new GRBModel(env);
 			model.set(GRB.StringAttr.ModelName, "factors");
 		
+			System.out.println("Define vars");
 			// Costs for executing Qi with level Aj			
 			Double[][] L = new Double[Q.size()][A.size()];
 			// Binary containing whether Aj answers Qi
@@ -48,11 +60,15 @@ public class Aggregator {
 			// Optimization function
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
-					L[i][j] = Q.get(j)%A.get(i) == 0 ? 0:GRB.INFINITY;
+					L[i][j] = Q.get(i)%A.get(j) == 0 ? 0:GRB.INFINITY;
 					X[i][j] = model.addVar(0.0, 1.0, L[i][j], GRB.BINARY, "Xij");
 				}
 			}
 			
+			System.out.println("Update model");
+			model.update();
+			
+			System.out.println("Define constraints");
 			// Constraint line 1
 			// All queries i in Q
 			for(int i=0;i<X.length;i++){
@@ -78,13 +94,28 @@ public class Aggregator {
 				model.addConstr(expr, GRB.LESS_EQUAL, max, "line2");
 			}
 			
+			// Constraint line 3
+			GRBLinExpr expr = new GRBLinExpr();
+			for(int j=0;j<X.length;j++){
+				expr.addTerm(1/A.get(j), Y[j]);
+			}
+			model.addConstr(expr, GRB.LESS_EQUAL, 1+STORAGE_CONSTRAINT, "line3");
+			
 			// Integrate variables into model
+			System.out.println("Update model");
 			model.update();
+			System.out.println("Start optimization");
+			model.optimize();
+			System.out.println("Optimization finished");
 			
-			// Add constraints
-			GRBLinExpr expr;
-			
-			
+			List<Integer> factors = new ArrayList<Integer>();
+			double[] results = model.get(GRB.DoubleAttr.X, Y);
+			for(int i=0;i<results.length;i++){
+				System.out.println("result["+i+"]:"+results[i]);
+				if(results[i]==1.0)
+					factors.add(i);
+			}
+			System.out.println("factors: "+factors);
 		}catch(GRBException e){
 			System.out.println("Error code: "+e.getErrorCode()+". "+e.getMessage());
 		}
