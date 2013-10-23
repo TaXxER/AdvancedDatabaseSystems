@@ -14,7 +14,7 @@ public class Aggregator {
 	public static final Integer NUM_SECONDS 		= 145130880;
 	public static final Integer MAX_RESOLUTION  	= 600;
 	public static final Integer NUM_FACTORS	    	= NUM_SECONDS / MAX_RESOLUTION;
-	public static final Double	STORAGE_CONSTRAINT	= 0.05;
+	public static final Double	STORAGE_CONSTRAINT	= 0.5;
 	
 	public static void main(String[] args){
 		try{
@@ -35,7 +35,7 @@ public class Aggregator {
 			Q.add(3);
 			Q.add(4);
 			Q.add(5);
-			
+			Q.add(6);
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
 			
@@ -109,8 +109,10 @@ public class Aggregator {
 			
 			// Constraint line 3
 			GRBLinExpr expr = new GRBLinExpr();
-			for(int j=0;j<X.length;j++){
-				expr.addTerm(1/A.get(j), Y[j]);
+			for(int j=0;j<X[0].length;j++){
+				expr.addTerm(1.0/A.get(j), Y[j]);
+				System.out.println("storage: "+1.0/A.get(j));
+				System.out.println("Aj: "+A.get(j));
 			}
 			model.addConstr(expr, GRB.LESS_EQUAL, 1+STORAGE_CONSTRAINT, "line3");
 			
@@ -123,17 +125,17 @@ public class Aggregator {
 //			
 			List<Integer> factors = new ArrayList<Integer>();
 			double[] results = model.get(GRB.DoubleAttr.X, Y);
-			for(int i=0;i<results.length;i++){
-				System.out.println("factor["+i+"]:"+results[i]);
-				if(results[i]==1.0)
-					factors.add(i);
-			}
-			double[][] result = model.get(GRB.DoubleAttr.X, X);
+//			for(int i=0;i<results.length;i++){
+//				System.out.println("factor["+i+"]:"+results[i]);
+//				if(results[i]==1.0)
+//					factors.add(i);
+//			}
+//			double[][] result = model.get(GRB.DoubleAttr.X, X);
 //			for(int i=0;i<result.length;i++){
 //				for(int j=0;j<result[i].length;j++)
 //				System.out.println("result["+i+"]["+j+"]"+result[i][j]);
 //			}
-//			System.out.println("factors: "+factors);
+			System.out.println("factors: "+factors);
 		}catch(GRBException e){
 			System.out.println("Error code: "+e.getErrorCode()+". "+e.getMessage());
 		}
