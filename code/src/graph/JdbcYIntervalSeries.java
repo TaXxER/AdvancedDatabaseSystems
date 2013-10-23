@@ -5,11 +5,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.jfree.data.Range;
 import org.jfree.data.time.Second;
 import org.jfree.data.xy.YIntervalSeries;
+
+import aggregation.ManageAggregations;
 
 
 public class JdbcYIntervalSeries extends YIntervalSeries {
@@ -25,8 +28,9 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 	private String constraint;
 	private double ds_start = 0;
 	private double ds_extent = 0;
+	private ManageAggregations aggregations;
 
-	protected int MAX_RESOLUTION = 100;
+	protected int MAX_RESOLUTION = 600;
 
 	public JdbcYIntervalSeries(Comparable key) {
 		super(key);
@@ -85,6 +89,8 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 		this.yAttribute = yAttribute;
 		this.tableName = tableName;
 		this.constraint = constraint;
+		
+		aggregations = new ManageAggregations(con);
 	}
 
 	/**
@@ -166,7 +172,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 		if (start < ds_start || start > ds_start+ds_extent || 
 				start+extent > ds_start+ds_extent ||
 				factor < ds_factor/2 || factor > ds_factor*2 ){
-			System.out.print("update with start, extent, factor, querytime: "+
+			System.out.println("update with start, extent, factor, querytime: "+
 					start+","+extent+","+factor);
 			this.data.clear();			
 			// load the data
@@ -174,14 +180,19 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			Object obj;
 			if(con==null) return; 
 			Statement st;
+
+			tableName = "dataset_"+aggregations.determineDataset(factor);
+
+//			System.out.println("total aggregations percentage: "+aggregations.totalAggregationsPercentageSize());
+			
 			try {
 //				if (quantile==0){
 					// this corresponds to min and max
-					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start-extent)+" and "+xAttribute+" <= "+(start+2*extent)+" group by "+xAttribute+" div "+factor;
+					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start)+" and "+xAttribute+" <= "+(start+extent)+" group by "+xAttribute+" div "+factor;
 					st = con.createStatement();
 					long starttime = System.currentTimeMillis();
 					ResultSet rs = st.executeQuery(query);
-					System.out.println(","+(System.currentTimeMillis()-starttime));
+//					System.out.println(","+(System.currentTimeMillis()-starttime));
 					long prevTime=0;
 					while(rs.next()){
 						long timed = rs.getLong(1);
@@ -201,8 +212,42 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			}
 			this.ds_start = start-extent;
 			this.ds_extent = start+2*extent;
+			
 		}
 		this.fireSeriesChanged();
+//		update2(start, extent);
 	}
+	
+// Used to count resulting rows.
+//	public void update2(long start, long extent){
+//		long factor = (long) Math.ceil(extent/MAX_RESOLUTION);
+//			Connection con = getConnection();
+//			Object obj;
+//			if(con==null) return; 
+//			Statement st;
+//			try {
+////				if (quantile==0){
+//					// this corresponds to min and max
+//				String query = "select count(*) from "+tableName+" where "+xAttribute+">="+(start)+" and "+xAttribute+" <= "+(start+extent)+" group by "+xAttribute+" div "+factor;
+////					String query = "select count(*) from "+tableName+" where "+xAttribute+">="+(start)+" and "+xAttribute+" <= "+(start+extent);
+//					st = con.createStatement();
+//					long starttime = System.currentTimeMillis();
+//					ResultSet rs = st.executeQuery(query);
+//					System.out.println(","+(System.currentTimeMillis()-starttime));
+//					long prevTime=0;
+//					
+//					if (rs.next()){
+//						
+//						long count = rs.getLong(1);
+//						
+//						System.out.println("Count: "+count);
+//					}
+////				} 
+//				} catch (SQLException e) {
+//				e.printStackTrace();
+//			}
+//	}
+	
+
 
 }
