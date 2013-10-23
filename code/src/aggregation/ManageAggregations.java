@@ -31,6 +31,18 @@ public class ManageAggregations {
 		aggregationFactors = new ArrayList<Long>();
 		this.con = con;
 		addExistingDatasets();
+		
+		// Eerste keer uit commenten om aggregates te maken.
+//		aggregations.createAggregate(241884  );
+//		aggregations.createAggregate(120942  );
+//		aggregations.createAggregate(60471   );
+//		aggregations.createAggregate(30235   );
+//		aggregations.createAggregate(15118   );
+//		aggregations.createAggregate(7559    );
+//		aggregations.createAggregate(3780    );
+//		aggregations.createAggregate(1890    );
+		
+		
 	}
 	
 	

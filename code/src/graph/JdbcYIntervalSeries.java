@@ -181,7 +181,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			if(con==null) return; 
 			Statement st;
 
-			tableName = "dataset_"+aggregations.determineDataset(factor);
+			tableName = "dataset_"+aggregations.determineDataset(factor/1000);
 
 //			System.out.println("total aggregations percentage: "+aggregations.totalAggregationsPercentageSize());
 			
