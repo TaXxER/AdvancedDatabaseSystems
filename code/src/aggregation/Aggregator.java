@@ -55,15 +55,17 @@ public class Aggregator {
 			// Binary whether Aj is part of the solution
 			GRBVar[]   Y = new GRBVar[A.size()];
 			
-			for(int j=0;j<A.size();j++){
-				Y[j] = model.addVar(0.0, 1.0, 1.0, GRB.BINARY, "Yj");
+			// Start at 1, factor 1 is not a variable
+			Y[0] = model.addVar(1.0, 1.0, 1.0, GRB.BINARY, "Y[0]");
+			for(int j=1;j<A.size();j++){
+				Y[j] = model.addVar(0.0, 1.0, 1.0, GRB.BINARY, "Y["+j+"]");
 			}
 			
-			// Objective function
+			// Objective function variables
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
 					L[i][j] = Q.get(i)%A.get(j) == 0 ? Q.get(i)/A.get(j) :GRB.INFINITY;
-					X[i][j] = model.addVar(0.0, 1.0, L[i][j], GRB.BINARY, "Xij");
+					X[i][j] = model.addVar(0.0, 1.0, L[i][j], GRB.BINARY, "X["+i+"]["+j+"]");
 				}
 			}
 			
@@ -72,22 +74,21 @@ public class Aggregator {
 			
 			// Objective function
 			GRBLinExpr objective = new GRBLinExpr();
-			for(int i=0;i<X.length;i++){
-				for(int j=0;j<X[i].length;j++){
+			for(int i=0;i<Q.size();i++){
+				for(int j=0;j<A.size();j++){
 					objective.addTerm(L[i][j], X[i][j]);
 				}
 			}
 
-			model.set(GRB.IntAttr.ModelSense, 1);
-			model.setObjective(objective);
+			model.setObjective(objective, GRB.MINIMIZE);
 			
 			System.out.println("Define constraints");
 			// Constraint line 1
 			// All queries i in Q
-			for(int i=0;i<X.length;i++){
+			for(int i=0;i<Q.size();i++){
 				GRBLinExpr expr = new GRBLinExpr();
 				// The total number of pre-aggregation levels that answer it
-				for(int j=0;j<X[i].length;j++){
+				for(int j=0;j<A.size();j++){
 					expr.addTerm(1.0,X[i][j]);
 				}
 				// Must be exactly one
@@ -96,10 +97,10 @@ public class Aggregator {
 			
 			// Constraint line 2
 			// All pre-aggregation levels j in A
-			for(int j=0;j<X[0].length;j++){
+			for(int j=0;j<A.size();j++){
 				GRBLinExpr expr = new GRBLinExpr();
 				// The total number of 
-				for(int i=0;i<X.length;i++){
+				for(int i=0;i<Q.size();i++){
 					expr.addTerm(1.0, X[i][j]);
 				}
 				GRBLinExpr max = new GRBLinExpr();
@@ -109,7 +110,7 @@ public class Aggregator {
 			
 			// Constraint line 3
 			GRBLinExpr expr = new GRBLinExpr();
-			for(int j=0;j<X[0].length;j++){
+			for(int j=0;j<A.size();j++){
 				expr.addTerm(1.0/A.get(j), Y[j]);
 				System.out.println("storage: "+1.0/A.get(j));
 				System.out.println("Aj: "+A.get(j));
@@ -121,6 +122,7 @@ public class Aggregator {
 			model.update();
 			System.out.println("Start optimization");
 			model.optimize();
+			model.write("aggregator_model.sol");
 //			System.out.println("Optimization finished");
 //			
 			List<Integer> factors = new ArrayList<Integer>();
