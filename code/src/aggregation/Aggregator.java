@@ -21,22 +21,19 @@ public class Aggregator {
 			System.out.println("Preamble");
 			// Calculate multiples of 60 up to NUM_FACTORS
 			List<Integer> multiples = new ArrayList<Integer>();
+			List<Integer> queries = new ArrayList<Integer>();
 			int b = 60;
 			int counter = 60;
 			while (counter <= NUM_FACTORS){
 				multiples.add(counter/60);
+				if((counter/60)%10==0)
+					queries.add(counter/60);
 				counter += b;			
 			}
 			
 			// Define set of queries
-			//List<Integer> Q = new ArrayList<Integer>(multiples);
-			List<Integer> Q = new ArrayList<Integer>();
-			Q.add(21);
-			Q.add(2);
-			Q.add(3);
-			Q.add(4);
-			Q.add(5);
-			Q.add(6);
+			List<Integer> Q = new ArrayList<Integer>(multiples);
+
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
 			System.out.println(A);
@@ -64,6 +61,7 @@ public class Aggregator {
 			// Objective function variables
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
+					// TODO: Cost-array L aanpassen zodat hij de 300-600 resolution meeneemt in berekening
 					L[i][j] = Q.get(i)%A.get(j) == 0 ? Q.get(i)/A.get(j) :GRB.INFINITY;
 					X[i][j] = model.addVar(0.0, 1.0, L[i][j], GRB.BINARY, "X["+i+"]["+j+"]");
 				}
@@ -112,8 +110,6 @@ public class Aggregator {
 			GRBLinExpr expr = new GRBLinExpr();
 			for(int j=0;j<A.size();j++){
 				expr.addTerm(1.0/A.get(j), Y[j]);
-				System.out.println("storage: "+1.0/A.get(j));
-				System.out.println("Aj: "+A.get(j));
 			}
 			model.addConstr(expr, GRB.LESS_EQUAL, 1+STORAGE_CONSTRAINT, "line3");
 			
@@ -123,25 +119,19 @@ public class Aggregator {
 			System.out.println("Start optimization");
 			model.optimize();
 			model.write("aggregator_model.sol");
-//			System.out.println("Optimization finished");
-//			
+			
+			// Print results in console
 			List<Integer> factors = new ArrayList<Integer>();
 			double[] results = model.get(GRB.DoubleAttr.X, Y);
 			for(int i=0;i<results.length;i++){
 				if(results[i]==1.0)
 					factors.add((i+1));
 			}
-//			double[][] result = model.get(GRB.DoubleAttr.X, X);
-//			for(int i=0;i<result.length;i++){
-//				for(int j=0;j<result[i].length;j++)
-//				System.out.println("result["+i+"]["+j+"]"+result[i][j]);
-//			}
 			System.out.println("factors: "+factors);
 		}catch(GRBException e){
 			System.out.println("Error code: "+e.getErrorCode()+". "+e.getMessage());
 		}
 		
-
 	}
 
 }
