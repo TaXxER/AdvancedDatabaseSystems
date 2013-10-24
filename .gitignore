@@ -8,11 +8,17 @@
 *.out
 *.dvi
 
-# Java
+# Java output files
 *.class
 
-# Eclipse
+# Eclipse overhead files
 .metadata
 code/.classpath
-code/bin
 .project
+
+# Gurobi output files
+*.sol
+*.ilp
+*.mst
+*.bas
+*.prm
