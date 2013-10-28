@@ -11,10 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Aggregator {
+	// max(timed) - min(timed)
 	public static final Integer NUM_SECONDS 		= 145130880;
+	// 2418848
+	public static final Integer NUM_DATAPOINTS		= NUM_SECONDS / 60;
 	public static final Integer MIN_RESOLUTION		= 300;
 	public static final Integer MAX_RESOLUTION  	= 600;
-	public static final Integer NUM_FACTORS	    	= NUM_SECONDS / MAX_RESOLUTION;
+	public static final Integer NUM_FACTORS	    	= (int) Math.ceil((double)NUM_DATAPOINTS/(double)MAX_RESOLUTION);
 	public static final Double	STORAGE_CONSTRAINT	= 0.05;
 	
 	public static void main(String[] args){
@@ -22,19 +25,14 @@ public class Aggregator {
 			System.out.println("Preamble");
 			// Calculate multiples of 60 up to NUM_FACTORS
 			List<Integer> multiples = new ArrayList<Integer>();
-			List<Integer> queries = new ArrayList<Integer>();
-			int b = 60;
-			int counter = 60;
-			while (counter <= NUM_FACTORS){
-				multiples.add(counter/60);
-				if((counter/60)%10==0)
-					queries.add(counter/60);
-				counter += b;			
+
+			for(int i=1; i<=NUM_FACTORS ;i++){
+				multiples.add(i);
 			}
 			
 			// Define set of queries
-			List<Integer> Q = new ArrayList<Integer>(multiples);
-
+			List<Integer> Q = new ArrayList<Integer>(multiples);			
+			
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
 			System.out.println(A);
@@ -63,18 +61,24 @@ public class Aggregator {
 			// Objective function variables
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
-					// TODO: Cost-array L aanpassen zodat hij de 300-600 resolution meeneemt in berekening
 					double min_cost = GRB.INFINITY;
+					int resolution = -1;
 					for(int r=MIN_RESOLUTION;r<=MAX_RESOLUTION;r++){
 						double res = (double) r;
-						double cost = ((res/MAX_RESOLUTION)*Q.get(i))%A.get(j) == 0 ? ((res/MAX_RESOLUTION)*Q.get(i))/A.get(j) : GRB.INFINITY;
-//						System.out.println("r: "+r);
-//						System.out.println("Q.get("+i+"): "+Q.get(i));
-//						System.out.println("A.get("+j+"): "+A.get(j));
-//						System.out.println("cost: "+cost);
+						// query komt overeen met aantal geselecteerde datapunten. Q-waarden gaan uit van resolutie 600.
+						// bij lagere resolutie meer datapunten per beeldpunt aggregeren om in totaal evenveel datapunten te plotten. 
+						double res_adj_factor = Q.get(i) * (MAX_RESOLUTION/res);
+						double cost = GRB.INFINITY;
+						// grafiek is alleen plotbaar wanneer een geheel aantal datapunten samen worden genomen
+						if (res_adj_factor == Math.floor(res_adj_factor)){
+							// 	costs the resolution adjusted factor divided by the largest aggregate that divides it
+						    cost = res_adj_factor % A.get(j) == 0 ? res_adj_factor/A.get(j) : GRB.INFINITY;
+						}
 						
-						min_cost = cost < min_cost ? cost : min_cost;
-//						System.out.println("min_cost: "+min_cost);
+						if(cost<min_cost){
+							resolution = r;
+							min_cost = cost;
+						}
 					}
 					L[i][j] = min_cost;
 //					System.out.println("L["+i+"]["+j+"] = "+L[i][j]);
@@ -137,6 +141,7 @@ public class Aggregator {
 			model.optimize();
 			model.write("aggregator_model.sol");
 			
+			
 			// Print results in console
 			List<Integer> factors = new ArrayList<Integer>();
 			double[] results = model.get(GRB.DoubleAttr.X, Y);
@@ -145,6 +150,44 @@ public class Aggregator {
 					factors.add((i+1));
 			}
 			System.out.println("factors: "+factors);
+			
+			// Calculate the cheapest factor/datapoint combinations for each query
+			for(int i=0;i<Q.size();i++){
+				// Set result variables
+				double min_cost = GRB.INFINITY;
+				int resolution = -1;
+				int factor = -1;
+				
+				// Calculate results
+				for(int j=0;j<factors.size();j++){
+					double min_cost_inner = GRB.INFINITY;
+					int resolution_inner = -1;
+					for(int r=MIN_RESOLUTION;r<=MAX_RESOLUTION;r++){
+						double res = (double) r;
+						// query komt overeen met aantal geselecteerde datapunten. Q-waarden gaan uit van resolutie 600.
+						// bij lagere resolutie meer datapunten per beeldpunt aggregeren om in totaal evenveel datapunten te plotten. 
+						double res_adj_factor = Q.get(i) * (MAX_RESOLUTION/res);
+						double cost = GRB.INFINITY;
+						// grafiek is alleen plotbaar wanneer een geheel aantal datapunten samen worden genomen
+						if (res_adj_factor == Math.floor(res_adj_factor)){
+							// 	costs the resolution adjusted factor divided by the largest aggregate that divides it
+						    cost = res_adj_factor % factors.get(j) == 0 ? res_adj_factor/factors.get(j) : GRB.INFINITY;
+						}
+						
+						if(cost < min_cost_inner){
+							resolution_inner = r;
+							min_cost_inner = cost;
+						}
+					}
+					if(min_cost_inner < min_cost){
+						min_cost = min_cost_inner;
+						resolution = resolution_inner;
+						factor = factors.get(j);
+					}
+				}
+				System.out.println("plot query "+Q.get(i)+" with res "+resolution+" using factor "+factor+" for cost "+min_cost);
+			}
+			
 		}catch(GRBException e){
 			System.out.println("Error code: "+e.getErrorCode()+". "+e.getMessage());
 		}
