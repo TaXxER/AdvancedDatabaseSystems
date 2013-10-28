@@ -33,14 +33,14 @@ public class ManageAggregations {
 		addExistingDatasets();
 		
 		// Eerste keer uit commenten om aggregates te maken.
-//		aggregations.createAggregate(241884  );
-//		aggregations.createAggregate(120942  );
-//		aggregations.createAggregate(60471   );
-//		aggregations.createAggregate(30235   );
-//		aggregations.createAggregate(15118   );
-//		aggregations.createAggregate(7559    );
-//		aggregations.createAggregate(3780    );
-//		aggregations.createAggregate(1890    );
+//		createAggregate(241884  );
+//		createAggregate(120942  );
+//		createAggregate(60471   );
+//		createAggregate(30235   );
+//		createAggregate(15118   );
+//		createAggregate(7559    );
+//		createAggregate(3780    );
+//		createAggregate(1890    );
 		
 		
 	}
