@@ -10,6 +10,10 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.Hashtable;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -39,7 +43,7 @@ import org.jfree.ui.RefineryUtilities;
 public class GraphGui extends ApplicationFrame{
 
 	private static class JdbcPanel extends JPanel 
-	implements AdjustmentListener, ChangeListener	{
+	implements AdjustmentListener, ChangeListener, ActionListener	{
 
 		private static final int step = 10;
 		private ValueAxis domainAxis;
@@ -112,6 +116,8 @@ public class GraphGui extends ApplicationFrame{
 		private JSlider quantileSlider;
 		private int quantile=0;
 		private JTextField textField;
+		private JButton toLeft;
+		private JButton toRight;
 
 		public JdbcPanel()
 		{
@@ -132,6 +138,11 @@ public class GraphGui extends ApplicationFrame{
 					(int) Math.floor(((r.getLowerBound()-diff)*factorRange)), 
 					(int) Math.ceil(((r.getUpperBound()+diff)*factorRange)));
 			scrollbar.addAdjustmentListener(this);
+			
+			toLeft = new JButton("<");
+			toRight = new JButton(">");
+			toLeft.addActionListener(this);
+			toRight.addActionListener(this);
 
 			r = domainAxis.getRange();
 			valueD = (long) r.getLowerBound();
@@ -169,22 +180,18 @@ public class GraphGui extends ApplicationFrame{
 			add(chartpanel);
 //			add(quantileSlider,"East");
 			add(scrollbarh,"South");
-//			JPanel jpanel2 = new JPanel();
-//			jpanel2.setLayout(new BoxLayout(jpanel2, BoxLayout.Y_AXIS));
-//			jpanel2.add(scrollbarh);
-//			JPanel jpanel21 = new JPanel();
-//			jpanel21.add(new JLabel("scroll factor"));
-//			JButton b = new JButton("/2");
+			JPanel jpanel2 = new JPanel();
+			jpanel2.setLayout(new BoxLayout(jpanel2, BoxLayout.Y_AXIS));
+			jpanel2.add(scrollbarh);
+			JPanel jpanel21 = new JPanel();
+			jpanel21.add(new JLabel("scroll factor"));
 //			b.addActionListener(this);
-//			jpanel21.add(b);
-//			b = new JButton("*2");
+			jpanel21.add(toLeft);
+			jpanel21.add(toRight);
 //			b.addActionListener(this);
-//			jpanel21.add(b);
-//			textField = new JTextField(20);
 //			textField.addActionListener(this);
-//			jpanel21.add(textField);
-//			jpanel2.add(jpanel21);
-//			add(jpanel2,"South");
+			jpanel2.add(jpanel21);
+			add(jpanel2,"South");
 
 			//add(new JButton("+"),"SouthEast");
 
@@ -200,6 +207,11 @@ public class GraphGui extends ApplicationFrame{
 			{
 				valueD = (long) (scrollbarh.getValue()/factorDomain);
 				extentD = (long) (scrollbarh.getVisibleAmount()/factorDomain);
+				
+				if(extentD == 0){
+					extentD = 36000000;
+				}
+				
 				// reload data set
 				YIntervalSeriesCollection col = (YIntervalSeriesCollection) xydataset;
 				for(int i=0; i<col.getSeriesCount(); i++){
@@ -220,6 +232,60 @@ public class GraphGui extends ApplicationFrame{
 					series.update(valueD, extentD);
 				}
 			} 
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if((arg0.getSource() == toLeft) || (arg0.getSource() == toRight)){
+				valueD = (long) (scrollbarh.getValue()/factorDomain);
+				extentD = (long) (scrollbarh.getVisibleAmount()/factorDomain);
+				
+				if(extentD == 0){
+					extentD = 36000000;
+				}				
+				
+				// reload data set
+				YIntervalSeriesCollection col = (YIntervalSeriesCollection) xydataset;
+				for(int i=0; i<col.getSeriesCount(); i++){
+					JdbcYIntervalSeries series = (JdbcYIntervalSeries) col.getSeries(i);
+					series.update(valueD, extentD);
+				}
+				
+				DateFormat df2 = DateFormat.getDateInstance(DateFormat.MEDIUM);
+				
+				Date epoch = new Date(valueD);				
+				String oldStart = df2.format(epoch);				
+				System.out.println("Old start: " + oldStart);
+				
+				Date epoch2 = new Date(valueD+extentD);				
+				String oldEnd = df2.format(epoch2);				
+				System.out.println("Old end: " + oldEnd);
+				
+				
+				long newVal;
+				
+				if(arg0.getSource() == toLeft){	
+					newVal = valueD-(extentD/2);
+				} else {
+					newVal = valueD+(extentD/2);
+				}				
+
+				
+				Date epoch3 = new Date(newVal);				
+				String newStart = df2.format(epoch3);				
+				System.out.println("New start: " + newStart);
+				
+				Date epoch4 = new Date(newVal+extentD);				
+				String newEnd = df2.format(epoch4);				
+				System.out.println("New end: " + newEnd);
+				
+				scrollbarh.setValue((int)(newVal*factorDomain));
+				scrollbarh.setVisibleAmount((int)(extentD*factorDomain));
+				
+				domainAxis.setRange(newVal, newVal+extentD);
+				
+			}
+			
 		}
 
 	} // end of JdbcPanel class
