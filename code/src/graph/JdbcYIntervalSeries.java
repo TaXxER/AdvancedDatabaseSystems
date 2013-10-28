@@ -15,6 +15,9 @@ import org.jfree.data.xy.YIntervalSeries;
 import aggregation.ManageAggregations;
 
 
+import java.text.SimpleDateFormat;
+
+
 public class JdbcYIntervalSeries extends YIntervalSeries {
 
 	private Connection con;
@@ -109,6 +112,27 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			}
 			return con;
 	}
+	
+	/**
+	 * Zorgt ervoor dat de log database bestaat.
+	 */
+	public void setQueryLogTable(){
+		
+		Connection con = getConnection();
+		Statement st;
+		try {
+			st = con.createStatement();
+			
+			String queryQueryLog = "CREATE TABLE IF NOT EXISTS `querylog` ( `id` int(11) NOT NULL AUTO_INCREMENT,  `timestamp` datetime NOT NULL,  `start` int(10) unsigned NOT NULL,"
+					+ "`extent` int(10) unsigned NOT NULL,  `factor` int(10) unsigned NOT NULL,  PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1";
+			
+			ResultSet rs = st.executeQuery(queryQueryLog);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
 
 	/**
 	 * the range of the domain i.e. the x axis; 
@@ -188,6 +212,16 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			try {
 //				if (quantile==0){
 					// this corresponds to min and max
+				
+					//Maakt een timestamp aan
+					Date date = new Date();
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+					String timestamp = dateFormat.format(date);					
+					
+					//Insert eeen start/extent/factor in een log
+					Statement stLog = con.createStatement();					
+					String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + extent/1000 + ", " + factor/1000 + ")";
+					stLog.executeUpdate(queryLogUpdate);
 					
 					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-extent/1000)+" and "+xAttribute+" <= "+(start/1000+2*extent/1000)+" group by "+xAttribute+" div "+factor/1000;
 
