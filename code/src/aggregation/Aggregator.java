@@ -12,6 +12,7 @@ import java.util.List;
 
 public class Aggregator {
 	public static final Integer NUM_SECONDS 		= 145130880;
+	public static final Integer MIN_RESOLUTION		= 300;
 	public static final Integer MAX_RESOLUTION  	= 600;
 	public static final Integer NUM_FACTORS	    	= NUM_SECONDS / MAX_RESOLUTION;
 	public static final Double	STORAGE_CONSTRAINT	= 0.05;
@@ -58,14 +59,30 @@ public class Aggregator {
 				Y[j] = model.addVar(0.0, 1.0, 1.0, GRB.BINARY, "Y["+j+"]");
 			}
 			
+			System.out.println("Calculate costs");
 			// Objective function variables
 			for(int i=0;i<Q.size();i++){
 				for(int j=0;j<A.size();j++){
 					// TODO: Cost-array L aanpassen zodat hij de 300-600 resolution meeneemt in berekening
-					L[i][j] = Q.get(i)%A.get(j) == 0 ? Q.get(i)/A.get(j) :GRB.INFINITY;
+					double min_cost = GRB.INFINITY;
+					for(int r=MIN_RESOLUTION;r<=MAX_RESOLUTION;r++){
+						double res = (double) r;
+						double cost = ((res/MAX_RESOLUTION)*Q.get(i))%A.get(j) == 0 ? ((res/MAX_RESOLUTION)*Q.get(i))/A.get(j) : GRB.INFINITY;
+//						System.out.println("r: "+r);
+//						System.out.println("Q.get("+i+"): "+Q.get(i));
+//						System.out.println("A.get("+j+"): "+A.get(j));
+//						System.out.println("cost: "+cost);
+						
+						min_cost = cost < min_cost ? cost : min_cost;
+//						System.out.println("min_cost: "+min_cost);
+					}
+					L[i][j] = min_cost;
+//					System.out.println("L["+i+"]["+j+"] = "+L[i][j]);
 					X[i][j] = model.addVar(0.0, 1.0, L[i][j], GRB.BINARY, "X["+i+"]["+j+"]");
 				}
 			}
+			
+			//System.out.println(L);
 			
 			System.out.println("Update model");
 			model.update();
