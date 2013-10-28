@@ -42,6 +42,15 @@ public class ManageAggregations {
 //		createAggregate(3780    );
 //		createAggregate(1890    );
 		
+		// Eerste keer uit commenten om aggregates te maken.
+//		removeAggregate(241884  );
+//		removeAggregate(120942  );
+//		removeAggregate(60471   );
+//		removeAggregate(30235   );
+//		removeAggregate(15118   );
+//		removeAggregate(7559    );
+//		removeAggregate(3780    );
+//		removeAggregate(1890    );
 		
 	}
 	
