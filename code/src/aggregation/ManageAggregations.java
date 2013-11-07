@@ -50,7 +50,7 @@ public class ManageAggregations {
 		addExistingDatasets();
 		
 		// INSTELLEN: Wel of niet eerst alle aggregates verwijderen
-		// removeAllAggregates();
+		// removeAggregates(existingFactors);
 		
 		/*
 		 *  For Precise mode
@@ -100,6 +100,7 @@ public class ManageAggregations {
 	public void setPreciseMode(boolean preciseMode){
 		System.out.println("preciseMode set to: "+preciseMode);
 		this.preciseMode = preciseMode;
+		// Calculate optimal factors per query if this hasn't been calculated before and new mode is preciseMode
 		if(preciseMode && queryToFacResCosTupleMap==null)
 			preCalculateQueryPlans();
 	}
@@ -216,8 +217,9 @@ public class ManageAggregations {
 		Statement st;
 		try {
 				System.out.println("Creating aggregated dataset with factor: "+(factorInSeconds));
-				String createTable = "create table dataset_"+(factorInSeconds)+" ( ID int, timed long, PEGEL double)";
-				String insertData = "insert into dataset_"+(factorInSeconds)+" (ID, timed, PEGEL) select ID, timed, PEGEL from dataset_1 group by timed div "+(factorInSeconds);
+				String createTable = "create table dataset_"+(factorInSeconds)+" (timed long, PEGEL double)";
+				
+				String insertData = "insert into dataset_"+(factorInSeconds)+" (timed, PEGEL) select timed, avg(PEGEL) from dataset_1 group by timed div "+(factorInSeconds);
 				st = con.createStatement();
 				long starttime = System.currentTimeMillis();
 				st.execute(createTable);
