@@ -13,6 +13,7 @@ import org.jfree.data.time.Second;
 import org.jfree.data.xy.YIntervalSeries;
 
 import aggregation.ManageAggregations;
+import aggregation.UserStatistics;
 
 
 public class JdbcYIntervalSeries extends YIntervalSeries {
@@ -30,6 +31,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 	private double ds_start = 0;
 	private double ds_extent = 0;
 	private ManageAggregations aggregations;
+	private UserStatistics statisticsHandler;
 
 	public static int MAX_RESOLUTION = 600;
 
@@ -92,6 +94,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 		this.constraint = constraint;
 		
 		aggregations = new ManageAggregations(con, false);
+		statisticsHandler = new UserStatistics();
 	}
 
 	/**
@@ -113,27 +116,6 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 	
 	protected ManageAggregations getAggregationManager(){
 		return aggregations;
-	}
-	
-	/**
-	 * Zorgt ervoor dat de log database bestaat.
-	 */
-	public void setQueryLogTable(){
-		
-		Connection con = getConnection();
-		Statement st;
-		try {
-			st = con.createStatement();
-			
-			String queryQueryLog = "CREATE TABLE IF NOT EXISTS `querylog` ( `id` int(11) NOT NULL AUTO_INCREMENT,  `timestamp` datetime NOT NULL,  `start` int(10) unsigned NOT NULL,"
-					+ "`extent` int(10) unsigned NOT NULL,  `factor` int(10) unsigned NOT NULL,  PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1";
-			
-			st.executeQuery(queryQueryLog);
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
 	}
 
 	/**
@@ -217,16 +199,10 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			tableName = "dataset_"+factorUsed;
 			System.out.println("factor used: "+factorUsed);
 						
-			try {
-				//Maakt een timestamp aan
-				Date date = new Date();
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-				String timestamp = dateFormat.format(date);					
+			try {						
 				
-				//Insert eeen start/extent/factor in een log
-				// Statement stLog = con.createStatement();					
-				// String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + millisecExtent/1000 + ", " + secFac + ")";
-				// stLog.executeUpdate(queryLogUpdate);
+				//Sla statistieken op
+				statisticsHandler.addUserStatistic(start, millisecExtent, secFac);
 				
 				String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-millisecExtent/1000)+" and "+xAttribute+" <= "+(start/1000+2*millisecExtent/1000)+" group by "+xAttribute+" div "+secFac;
 
