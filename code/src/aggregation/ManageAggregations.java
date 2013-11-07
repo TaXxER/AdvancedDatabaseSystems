@@ -96,6 +96,7 @@ public class ManageAggregations {
 	}
 	
 	public void setPreciseMode(boolean preciseMode){
+		System.out.println("preciseMode set to: "+preciseMode);
 		this.preciseMode = preciseMode;
 		if(preciseMode && queryToFacResCosTupleMap==null)
 			preCalculateQueryPlans();
@@ -157,6 +158,7 @@ public class ManageAggregations {
 	}
 	
 	public long determineDataset(long givenFactor){
+		System.out.println("preciseMode: "+preciseMode);
 		return preciseMode ? queryToFacResCosTupleMap.get(givenFactor).factor : determindeFastDataSet(givenFactor);
 	}
 	

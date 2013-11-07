@@ -307,11 +307,15 @@ public class GraphGui extends ApplicationFrame{
 				domainAxis.setRange(newVal, newVal+extentD);
 				
 			} else if(ae.getSource() == fastModeButton){
-				if(preciseMode)
+				if(preciseMode){
 					timeseries.getAggregationManager().setPreciseMode(false);
+					preciseMode = false;
+				}
 			} else if(ae.getSource() == preciseModeButton){
-				if(!preciseMode)
+				if(!preciseMode){
 					timeseries.getAggregationManager().setPreciseMode(true);
+					preciseMode = true;
+				}
 			}			
 		}
 
