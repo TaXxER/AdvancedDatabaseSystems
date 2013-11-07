@@ -204,16 +204,16 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 				//Sla statistieken op
 				statisticsHandler.addUserStatistic(start, millisecExtent, secFac);
 				
-				String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-millisecExtent/1000)+" and "+xAttribute+" <= "+(start/1000+2*millisecExtent/1000)+" group by "+xAttribute+" div "+secFac;
+				String query = "select "+xAttribute+", avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-millisecExtent/1000)+" and "+xAttribute+" <= "+(start/1000+2*millisecExtent/1000)+" group by "+xAttribute+" div "+secFac;
 
 				st = con.createStatement();
 				ResultSet rs = st.executeQuery(query);
 				long prevTime=0;
 				while(rs.next()){
 					long timed = rs.getLong(1)*1000;
-					double pegelAvg = rs.getDouble(3);
-					double pegelLow = rs.getDouble(4);
-					double pegelHigh = rs.getDouble(5);
+					double pegelAvg = rs.getDouble(2);
+					double pegelLow = rs.getDouble(3);
+					double pegelHigh = rs.getDouble(4);
 					if(prevTime!=timed){
 						obj = new Second(new Date(timed));
 						add(timed, pegelAvg, pegelLow, pegelHigh);
