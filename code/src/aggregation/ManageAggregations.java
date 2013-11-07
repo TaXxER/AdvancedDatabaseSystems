@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,8 +71,9 @@ public class ManageAggregations {
 		
 		/*
 		 *	For Fast mode
+		 *	LinkedHashSet to preserve insertion order (determindeFastDataSet method requires an order)
 		 */
-		this.fastModeFactors = new HashSet<Long>(Arrays.asList(1890L,3780L,7559L,15118L,30235L,60471L,120942L,241884L));
+		this.fastModeFactors = new LinkedHashSet<Long>(Arrays.asList(241884L, 120942L, 60471L, 30235L, 15118L, 7559L, 3780L, 1890L));
 		
 		// Remove all existing factors not needed for fast mode or precise mode
 		Set<Long> deletionSet = new HashSet<Long>();
@@ -163,9 +165,13 @@ public class ManageAggregations {
 	}
 	
 	private long determindeFastDataSet(long givenFactor){
+		// In case no other factor fits, use unaggregated data
 		long resultingFactor = 1;
+		// Find largest factor that is smaller or equal to 2 times the query factor (in case this is exactly 2 times, we can plot using 300 data points)
+		// In case no such factor exists, find the largest factor that is smaller than the query factor. 
+		// With this factor we can combine aggregates until more measurements than queried are calculated from which we plot the queried parts
 		for(long fac : fastModeFactors){
-			if (fac > givenFactor &&  (fac*0.5) < givenFactor){
+			if (fac >= givenFactor && (fac*0.5) <= givenFactor){
 				return fac;
 			}
 			if (fac < givenFactor &&  fac > resultingFactor){
