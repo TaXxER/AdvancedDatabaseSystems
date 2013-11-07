@@ -33,7 +33,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 	private double ds_extent = 0;
 	private ManageAggregations aggregations;
 
-	protected int MAX_RESOLUTION = 600;
+	public static int MAX_RESOLUTION = 600;
 
 	public JdbcYIntervalSeries(Comparable key) {
 		super(key);
@@ -93,7 +93,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 		this.tableName = tableName;
 		this.constraint = constraint;
 		
-		aggregations = new ManageAggregations(con);
+		aggregations = new ManageAggregations(con, false);
 	}
 
 	/**
@@ -111,6 +111,10 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 				e.printStackTrace();
 			}
 			return con;
+	}
+	
+	protected ManageAggregations getAggregationManager(){
+		return aggregations;
 	}
 	
 	/**
@@ -152,7 +156,9 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			ResultSet rs = st.executeQuery(query);
 			rs.next();
 			minimumItemCount = rs.getLong(1)*1000;
+			System.out.println("minimumItemCount: "+minimumItemCount);
 			maximumItemCount = rs.getLong(2)*1000;
+			System.out.println("maximumItemCount: "+maximumItemCount);
 			//			update(minimumItemCount,maximumItemCount);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -188,24 +194,28 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 	/**
 	 * specify the start and the extent of the data 
 	 * @param start
-	 * @param extent
+	 * @param millisecExtent
 	 */
-	public void update(long start, long extent){
-		long factor = (long) Math.ceil(extent/MAX_RESOLUTION);
+	public void update(long start, long millisecExtent){
+		System.out.println("extent: "+millisecExtent);
+		long minExtent = (millisecExtent/1000)/60;
+		long minFac =(long) Math.ceil((double)minExtent/((double)MAX_RESOLUTION));
+		long secFac = minFac * 60;
+		System.out.println("factor; "+secFac);
 		long ds_factor = (long) Math.ceil(ds_extent/MAX_RESOLUTION);
 		if (start < ds_start || start > ds_start+ds_extent || 
-				start+extent > ds_start+ds_extent ||
-				factor < ds_factor/2 || factor > ds_factor*2 ){
+				start+millisecExtent > ds_start+ds_extent ||
+				secFac < ds_factor/2 || secFac > ds_factor*2 ){
 			System.out.println("update with start, extent, factor, querytime: "+
-					start+","+extent+","+factor);
+					start+","+millisecExtent+","+secFac);
 			this.data.clear();			
 			// load the data
 			Connection con = getConnection();
 			Object obj;
 			if(con==null) return; 
 			Statement st;
-
-			tableName = "dataset_"+aggregations.determineDataset(factor/1000);
+			System.out.println("factor: "+secFac);
+			tableName = "dataset_"+aggregations.determineDataset(secFac);
 
 //			System.out.println("total aggregations percentage: "+aggregations.totalAggregationsPercentageSize());
 			
@@ -220,10 +230,10 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 					
 					//Insert eeen start/extent/factor in een log
 					Statement stLog = con.createStatement();					
-					String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + extent/1000 + ", " + factor/1000 + ")";
-					stLog.executeUpdate(queryLogUpdate);
+					//String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + extent/1000 + ", " + factor/1000 + ")";
+					//stLog.executeUpdate(queryLogUpdate);
 					
-					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-extent/1000)+" and "+xAttribute+" <= "+(start/1000+2*extent/1000)+" group by "+xAttribute+" div "+factor/1000;
+					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-millisecExtent/1000)+" and "+xAttribute+" <= "+(start/1000+2*millisecExtent/1000)+" group by "+xAttribute+" div "+secFac;
 
 					st = con.createStatement();
 					long starttime = System.currentTimeMillis();
@@ -246,8 +256,8 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 				} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			this.ds_start = start-extent;
-			this.ds_extent = start+2*extent;
+			this.ds_start = start-millisecExtent;
+			this.ds_extent = start+2*millisecExtent;
 			
 		}
 		this.fireSeriesChanged();

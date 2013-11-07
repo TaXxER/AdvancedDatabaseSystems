@@ -8,17 +8,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.util.Hashtable;
-
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollBar;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -40,6 +40,9 @@ import org.jfree.data.xy.YIntervalSeriesCollection;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
+import aggregation.ManageAggregations;
+
+
 public class GraphGui extends ApplicationFrame{
 
 	private static class JdbcPanel extends JPanel 
@@ -50,7 +53,9 @@ public class GraphGui extends ApplicationFrame{
 		private XYDataset xydataset;
 		private static int preferedHeight = 500;
 		private static int preferedWidth = 270;
-
+		private boolean preciseMode = false;
+		private ManageAggregations aggregations;
+		private JdbcYIntervalSeries timeseries;
 
 		private XYDataset createPegelAndelfingen(){
 			YIntervalSeriesCollection timeseriescollection = new YIntervalSeriesCollection();
@@ -63,7 +68,7 @@ public class GraphGui extends ApplicationFrame{
 			//					"PEGEL",
 			//					"pegel_andelfingen2",
 			//					null);
-			JdbcYIntervalSeries timeseries = new JdbcYIntervalSeries("Pegel Andelfingen2",
+			this.timeseries = new JdbcYIntervalSeries("Pegel Andelfingen2",
 					"jdbc:mysql://localhost:3306/ads",
 					"com.mysql.jdbc.Driver",
 					"ads_account", 
@@ -73,8 +78,9 @@ public class GraphGui extends ApplicationFrame{
 					"dataset_1",
 					null);
 			Range range = timeseries.getDomainRange();
-			timeseries.update((new Double(range.getLowerBound())).longValue(), (new Double(range.getLength())).longValue());
+			timeseries.update((new Double(range.getLowerBound())).longValue(), (new Double(range.getUpperBound()-range.getLowerBound())).longValue());
 			timeseriescollection.addSeries(timeseries);
+			
 			return timeseriescollection;
 		}
 
@@ -118,6 +124,11 @@ public class GraphGui extends ApplicationFrame{
 		private JTextField textField;
 		private JButton toLeft;
 		private JButton toRight;
+		
+		// Own addition of radio button
+		private ButtonGroup  modeSelector = new ButtonGroup();
+		private JRadioButton fastModeButton;
+		private JRadioButton preciseModeButton;
 
 		public JdbcPanel()
 		{
@@ -174,7 +185,15 @@ public class GraphGui extends ApplicationFrame{
 			quantileSlider.setLabelTable (table);
 			quantileSlider.addChangeListener(this);
 
-
+			// Initialize radiobuttons
+			fastModeButton 		= new JRadioButton("fast mode");
+			fastModeButton.addActionListener(this);
+			fastModeButton.setSelected(true);
+			preciseModeButton 	= new JRadioButton("precise mode");
+			preciseModeButton.addActionListener(this);
+			modeSelector.add(fastModeButton);
+			modeSelector.add(preciseModeButton);
+			
 			jpanel.add(scrollbar);
 			add(jpanel, "West");
 			add(chartpanel);
@@ -191,6 +210,9 @@ public class GraphGui extends ApplicationFrame{
 //			b.addActionListener(this);
 //			textField.addActionListener(this);
 			jpanel2.add(jpanel21);
+			// Add radiobuttons to GUI
+			jpanel2.add(fastModeButton);
+			jpanel2.add(preciseModeButton);
 			add(jpanel2,"South");
 
 			//add(new JButton("+"),"SouthEast");
@@ -219,7 +241,7 @@ public class GraphGui extends ApplicationFrame{
 					series.update(valueD, extentD);
 				}
 				domainAxis.setRange(valueD, valueD+extentD);
-			} 
+			}
 		}
 
 		public void stateChanged(ChangeEvent changeevent) {
@@ -235,8 +257,8 @@ public class GraphGui extends ApplicationFrame{
 		}
 		
 		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			if((arg0.getSource() == toLeft) || (arg0.getSource() == toRight)){
+		public void actionPerformed(ActionEvent ae) {
+			if((ae.getSource() == toLeft) || (ae.getSource() == toRight)){
 				valueD = (long) (scrollbarh.getValue()/factorDomain);
 				extentD = (long) (scrollbarh.getVisibleAmount()/factorDomain);
 				
@@ -264,7 +286,7 @@ public class GraphGui extends ApplicationFrame{
 				
 				long newVal;
 				
-				if(arg0.getSource() == toLeft){	
+				if(ae.getSource() == toLeft){	
 					newVal = valueD-(extentD/2);
 				} else {
 					newVal = valueD+(extentD/2);
@@ -284,8 +306,13 @@ public class GraphGui extends ApplicationFrame{
 				
 				domainAxis.setRange(newVal, newVal+extentD);
 				
-			}
-			
+			} else if(ae.getSource() == fastModeButton){
+				if(preciseMode)
+					timeseries.getAggregationManager().setPreciseMode(false);
+			} else if(ae.getSource() == preciseModeButton){
+				if(!preciseMode)
+					timeseries.getAggregationManager().setPreciseMode(true);
+			}			
 		}
 
 	} // end of JdbcPanel class

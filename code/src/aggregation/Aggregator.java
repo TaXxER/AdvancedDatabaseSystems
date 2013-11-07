@@ -1,5 +1,6 @@
 package aggregation;
 
+import graph.JdbcYIntervalSeries;
 import gurobi.GRB;
 import gurobi.GRBEnv;
 import gurobi.GRBException;
@@ -15,23 +16,47 @@ public class Aggregator {
 	public static final Integer NUM_SECONDS 		= 145130880;
 	// 2418848
 	public static final Integer NUM_DATAPOINTS		= NUM_SECONDS / 60;
-	public static final Integer MIN_RESOLUTION		= 300;
-	public static final Integer MAX_RESOLUTION  	= 600;
+	public static final Integer MAX_RESOLUTION  	= JdbcYIntervalSeries.MAX_RESOLUTION;
+	public static final Integer MIN_RESOLUTION		= MAX_RESOLUTION/2;
 	public static final Integer NUM_FACTORS	    	= (int) Math.ceil((double)NUM_DATAPOINTS/(double)MAX_RESOLUTION);
 	public static final Double	STORAGE_CONSTRAINT	= 0.05;
 	
 	public static void main(String[] args){
 		try{
 			System.out.println("Preamble");
-			// Calculate multiples of 60 up to NUM_FACTORS
-			List<Integer> multiples = new ArrayList<Integer>();
 
-			for(int i=1; i<=NUM_FACTORS ;i++){
-				multiples.add(i);
-			}
-			
+			// Calculate multiples of 60 up to NUM_FACTORS
+			List<Integer> multiples = getTheoreticalFactors();
 			// Define set of queries
-			List<Integer> Q = new ArrayList<Integer>(multiples);			
+			List<Integer> Q = new ArrayList<Integer>();			
+			// Fill Q with all prime numbers up to NUM_FACTORS
+			for (int j = 1; j <= NUM_FACTORS; j ++){
+			    if (j>=3000 || isPrime(j))
+			        Q.add(j);
+			}
+			// Add 10 slowest after primes
+//			Q.add(4031);
+//			Q.add(4029);
+//			Q.add(4009);
+//			Q.add(4002);
+//			Q.add(3999);
+//			Q.add(3995);
+//			Q.add(3988);
+//			Q.add(3985);
+//			Q.add(3981);
+//			Q.add(3979);
+			
+			// Add 10 slowest 2nd iteration
+//			Q.add(4022);
+//			Q.add(4006);
+//			Q.add(3998);
+//			Q.add(3994);
+//			Q.add(3986);
+//			Q.add(3977);
+//			Q.add(3974);
+//			Q.add(3973);
+//			Q.add(3966);
+//			Q.add(3964);
 			
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);
@@ -74,7 +99,7 @@ public class Aggregator {
 							// 	costs the resolution adjusted factor divided by the largest aggregate that divides it
 						    cost = res_adj_factor % A.get(j) == 0 ? res_adj_factor/A.get(j) : GRB.INFINITY;
 						}
-						
+
 						if(cost<min_cost){
 							resolution = r;
 							min_cost = cost;
@@ -151,47 +176,33 @@ public class Aggregator {
 			}
 			System.out.println("factors: "+factors);
 			
-			// Calculate the cheapest factor/datapoint combinations for each query
-			for(int i=0;i<Q.size();i++){
-				// Set result variables
-				double min_cost = GRB.INFINITY;
-				int resolution = -1;
-				int factor = -1;
-				
-				// Calculate results
-				for(int j=0;j<factors.size();j++){
-					double min_cost_inner = GRB.INFINITY;
-					int resolution_inner = -1;
-					for(int r=MIN_RESOLUTION;r<=MAX_RESOLUTION;r++){
-						double res = (double) r;
-						// query komt overeen met aantal geselecteerde datapunten. Q-waarden gaan uit van resolutie 600.
-						// bij lagere resolutie meer datapunten per beeldpunt aggregeren om in totaal evenveel datapunten te plotten. 
-						double res_adj_factor = Q.get(i) * (MAX_RESOLUTION/res);
-						double cost = GRB.INFINITY;
-						// grafiek is alleen plotbaar wanneer een geheel aantal datapunten samen worden genomen
-						if (res_adj_factor == Math.floor(res_adj_factor)){
-							// 	costs the resolution adjusted factor divided by the largest aggregate that divides it
-						    cost = res_adj_factor % factors.get(j) == 0 ? res_adj_factor/factors.get(j) : GRB.INFINITY;
-						}
-						
-						if(cost < min_cost_inner){
-							resolution_inner = r;
-							min_cost_inner = cost;
-						}
-					}
-					if(min_cost_inner < min_cost){
-						min_cost = min_cost_inner;
-						resolution = resolution_inner;
-						factor = factors.get(j);
-					}
-				}
-				System.out.println("plot query "+Q.get(i)+" with res "+resolution+" using factor "+factor+" for cost "+min_cost);
-			}
-			
 		}catch(GRBException e){
 			System.out.println("Error code: "+e.getErrorCode()+". "+e.getMessage());
 		}
 		
+	}
+	
+	public static List<Integer> getTheoreticalFactors(){
+		List<Integer> multiples = new ArrayList<Integer>();
+
+		for(int i=1; i<=NUM_FACTORS ;i++){
+			multiples.add(i);
+		}
+		return multiples;
+	}
+	
+	public static boolean isPrime(int n) {
+
+	    if (n < 2) return false;
+
+	    int maxIteration = (int) Math.ceil(Math.sqrt(n));
+
+	    for (int i = 2; i < maxIteration; i++) {
+	        if(n % i == 0)
+	            return false;
+	    }
+
+	    return true;
 	}
 
 }
