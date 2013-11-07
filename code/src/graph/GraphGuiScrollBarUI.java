@@ -12,8 +12,6 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JComponent;
 import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.metal.MetalScrollBarUI;

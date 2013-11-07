@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.jfree.data.Range;
@@ -13,9 +13,6 @@ import org.jfree.data.time.Second;
 import org.jfree.data.xy.YIntervalSeries;
 
 import aggregation.ManageAggregations;
-
-
-import java.text.SimpleDateFormat;
 
 
 public class JdbcYIntervalSeries extends YIntervalSeries {
@@ -215,7 +212,10 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			if(con==null) return; 
 			Statement st;
 			System.out.println("factor: "+secFac);
-			tableName = "dataset_"+aggregations.determineDataset(secFac);
+			Long factorUsed = aggregations.determineDataset(secFac);
+			tableName = "dataset_"+factorUsed;
+			System.out.println("factor used: "+factorUsed);
+			
 
 //			System.out.println("total aggregations percentage: "+aggregations.totalAggregationsPercentageSize());
 			
