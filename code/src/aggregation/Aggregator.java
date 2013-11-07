@@ -34,29 +34,6 @@ public class Aggregator {
 			    if (j>=3000 || isPrime(j))
 			        Q.add(j);
 			}
-			// Add 10 slowest after primes
-//			Q.add(4031);
-//			Q.add(4029);
-//			Q.add(4009);
-//			Q.add(4002);
-//			Q.add(3999);
-//			Q.add(3995);
-//			Q.add(3988);
-//			Q.add(3985);
-//			Q.add(3981);
-//			Q.add(3979);
-			
-			// Add 10 slowest 2nd iteration
-//			Q.add(4022);
-//			Q.add(4006);
-//			Q.add(3998);
-//			Q.add(3994);
-//			Q.add(3986);
-//			Q.add(3977);
-//			Q.add(3974);
-//			Q.add(3973);
-//			Q.add(3966);
-//			Q.add(3964);
 			
 			// Define set of possible pre-aggregation levels: all multiples of 60 between 60 and 241884
 			List<Integer> A = new ArrayList<Integer>(multiples);

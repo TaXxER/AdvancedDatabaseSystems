@@ -17,6 +17,7 @@ import aggregation.ManageAggregations;
 
 public class JdbcYIntervalSeries extends YIntervalSeries {
 
+	private static final long serialVersionUID = 7695728984552840587L;
 	private Connection con;
 	private String url;
 	private String driverName;
@@ -127,7 +128,7 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			String queryQueryLog = "CREATE TABLE IF NOT EXISTS `querylog` ( `id` int(11) NOT NULL AUTO_INCREMENT,  `timestamp` datetime NOT NULL,  `start` int(10) unsigned NOT NULL,"
 					+ "`extent` int(10) unsigned NOT NULL,  `factor` int(10) unsigned NOT NULL,  PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1";
 			
-			ResultSet rs = st.executeQuery(queryQueryLog);
+			st.executeQuery(queryQueryLog);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -230,15 +231,13 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 					
 					//Insert eeen start/extent/factor in een log
 					Statement stLog = con.createStatement();					
-					//String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + extent/1000 + ", " + factor/1000 + ")";
-					//stLog.executeUpdate(queryLogUpdate);
+					String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + millisecExtent/1000 + ", " + secFac + ")";
+					stLog.executeUpdate(queryLogUpdate);
 					
 					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-millisecExtent/1000)+" and "+xAttribute+" <= "+(start/1000+2*millisecExtent/1000)+" group by "+xAttribute+" div "+secFac;
 
 					st = con.createStatement();
-					long starttime = System.currentTimeMillis();
 					ResultSet rs = st.executeQuery(query);
-//					System.out.println(","+(System.currentTimeMillis()-starttime));
 					long prevTime=0;
 					while(rs.next()){
 						long timed = rs.getLong(1)*1000;
@@ -252,7 +251,6 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 						} else 
 							System.out.println("removed duplicate data at timestampt "+timed);
 					}
-//				} 
 				} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -261,39 +259,5 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			
 		}
 		this.fireSeriesChanged();
-//		update2(start, extent);
 	}
-	
-// Used to count resulting rows.
-//	public void update2(long start, long extent){
-//		long factor = (long) Math.ceil(extent/MAX_RESOLUTION);
-//			Connection con = getConnection();
-//			Object obj;
-//			if(con==null) return; 
-//			Statement st;
-//			try {
-////				if (quantile==0){
-//					// this corresponds to min and max
-//				String query = "select count(*) from "+tableName+" where "+xAttribute+">="+(start)+" and "+xAttribute+" <= "+(start+extent)+" group by "+xAttribute+" div "+factor;
-////					String query = "select count(*) from "+tableName+" where "+xAttribute+">="+(start)+" and "+xAttribute+" <= "+(start+extent);
-//					st = con.createStatement();
-//					long starttime = System.currentTimeMillis();
-//					ResultSet rs = st.executeQuery(query);
-//					System.out.println(","+(System.currentTimeMillis()-starttime));
-//					long prevTime=0;
-//					
-//					if (rs.next()){
-//						
-//						long count = rs.getLong(1);
-//						
-//						System.out.println("Count: "+count);
-//					}
-////				} 
-//				} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//	}
-	
-
-
 }
