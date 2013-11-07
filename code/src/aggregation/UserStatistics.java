@@ -38,8 +38,8 @@ public class UserStatistics {
 	/**
 	 * Zorgt ervoor dat de logtabellen worden aangemaakt, mochten ze nog niet bestaan.
 	 */
-	public void setQueryLogTable(){
-		
+	private void setQueryLogTable(){
+		System.out.println("MAAK USER STATISTIC TABELLEN");
 		Connection con = getConnection();
 		Statement st;
 		try {
@@ -55,13 +55,12 @@ public class UserStatistics {
 					+ "PRIMARY KEY (`id`)) "
 					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 			
-			int correct = st.executeUpdate(query);
+			st.executeUpdate(query);
 			
 			//Maakt de tweede tabel aan, die onthoudt welke factoren worden gevraagd en hoe vaak.
 			String query2 = "CREATE TABLE IF NOT EXISTS `factorlog`(`factor` INT UNSIGNED NOT NULL, `count` INT UNSIGNED NULL, PRIMARY KEY (`factor`));";
-			int correct2 = st.executeUpdate(query2);
-			
-			
+			st.executeUpdate(query2);
+						
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
