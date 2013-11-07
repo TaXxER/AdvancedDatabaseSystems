@@ -46,17 +46,19 @@ public class UserStatistics {
 			st = con.createStatement();
 			
 			//Maakt de eerste tabel aan die alle parameters opslaat.
-			String query = "CREATE IF NOT EXISTS TABLE `querylog`(`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,  "
-					+ "`timestamp` INT UNSIGNED NOT NULL,  "
-					+ "`start` INT UNSIGNED NOT NULL,  "
-					+ "`extent` INT UNSIGNED NOT NULL,  "
-					+ "`factor` INT UNSIGNED NOT NULL,  "
-					+ "PRIMARY KEY (`id`));";
+			String query = "CREATE TABLE IF NOT EXISTS `querylog`("
+					+ "`id` int(10) unsigned NOT NULL AUTO_INCREMENT,  "
+					+ "`timestamp` varchar(23) NOT NULL,  "
+					+ "`start` int(10) unsigned NOT NULL,  "
+					+ "`extent` int(10) unsigned NOT NULL,  "
+					+ "`factor` int(10) unsigned NOT NULL,  "
+					+ "PRIMARY KEY (`id`)) "
+					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 			
 			int correct = st.executeUpdate(query);
 			
 			//Maakt de tweede tabel aan, die onthoudt welke factoren worden gevraagd en hoe vaak.
-			String query2 = "CREATE IF NOT EXISTS TABLE `factorlog`(`factor` INT UNSIGNED NOT NULL, `count` INT UNSIGNED NULL, PRIMARY KEY (`factor`));";
+			String query2 = "CREATE TABLE IF NOT EXISTS `factorlog`(`factor` INT UNSIGNED NOT NULL, `count` INT UNSIGNED NULL, PRIMARY KEY (`factor`));";
 			int correct2 = st.executeUpdate(query2);
 			
 			
@@ -77,7 +79,7 @@ public class UserStatistics {
 		//Maakt een timestamp aan
 		Date date = new Date();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-		String timestamp = dateFormat.format(date);					
+		String timestamp = dateFormat.format(date);
 		
 		Statement stLog;
 		try {
