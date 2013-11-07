@@ -216,47 +216,40 @@ public class JdbcYIntervalSeries extends YIntervalSeries {
 			Long factorUsed = aggregations.determineDataset(secFac);
 			tableName = "dataset_"+factorUsed;
 			System.out.println("factor used: "+factorUsed);
-			
-
-//			System.out.println("total aggregations percentage: "+aggregations.totalAggregationsPercentageSize());
-			
+						
 			try {
-//				if (quantile==0){
-					// this corresponds to min and max
+				//Maakt een timestamp aan
+				Date date = new Date();
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+				String timestamp = dateFormat.format(date);					
 				
-					//Maakt een timestamp aan
-					Date date = new Date();
-					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-					String timestamp = dateFormat.format(date);					
-					
-					//Insert eeen start/extent/factor in een log
-					Statement stLog = con.createStatement();					
-					String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + millisecExtent/1000 + ", " + secFac + ")";
-					stLog.executeUpdate(queryLogUpdate);
-					
-					String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-millisecExtent/1000)+" and "+xAttribute+" <= "+(start/1000+2*millisecExtent/1000)+" group by "+xAttribute+" div "+secFac;
+				//Insert eeen start/extent/factor in een log
+				// Statement stLog = con.createStatement();					
+				// String queryLogUpdate = "INSERT INTO querylog (`timestamp`,`start`,`extent`,`factor`) VALUES('" + timestamp + "', " + start/1000 + ", " + millisecExtent/1000 + ", " + secFac + ")";
+				// stLog.executeUpdate(queryLogUpdate);
+				
+				String query = "select "+xAttribute+", ID, avg("+yAttribute+"),min("+yAttribute+"),max("+yAttribute+") from "+tableName+" where "+xAttribute+">="+(start/1000-millisecExtent/1000)+" and "+xAttribute+" <= "+(start/1000+2*millisecExtent/1000)+" group by "+xAttribute+" div "+secFac;
 
-					st = con.createStatement();
-					ResultSet rs = st.executeQuery(query);
-					long prevTime=0;
-					while(rs.next()){
-						long timed = rs.getLong(1)*1000;
-						double pegelAvg = rs.getDouble(3);
-						double pegelLow = rs.getDouble(4);
-						double pegelHigh = rs.getDouble(5);
-						if(prevTime!=timed){
-							obj = new Second(new Date(timed));
-							add(timed, pegelAvg, pegelLow, pegelHigh);
-							prevTime= timed;
-						} else 
-							System.out.println("removed duplicate data at timestampt "+timed);
-					}
-				} catch (SQLException e) {
+				st = con.createStatement();
+				ResultSet rs = st.executeQuery(query);
+				long prevTime=0;
+				while(rs.next()){
+					long timed = rs.getLong(1)*1000;
+					double pegelAvg = rs.getDouble(3);
+					double pegelLow = rs.getDouble(4);
+					double pegelHigh = rs.getDouble(5);
+					if(prevTime!=timed){
+						obj = new Second(new Date(timed));
+						add(timed, pegelAvg, pegelLow, pegelHigh);
+						prevTime= timed;
+					} else 
+						System.out.println("removed duplicate data at timestampt "+timed);
+				}
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			this.ds_start = start-millisecExtent;
 			this.ds_extent = start+2*millisecExtent;
-			
 		}
 		this.fireSeriesChanged();
 	}
