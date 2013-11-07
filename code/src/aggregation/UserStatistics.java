@@ -19,6 +19,10 @@ public class UserStatistics {
 		this.setQueryLogTable();
 	}
 	
+	/**
+	 * Maakt een connectie naar de database
+	 * @return De connection
+	 */
 	protected Connection getConnection(){
 		if(con==null)
 			try {
@@ -32,7 +36,7 @@ public class UserStatistics {
 	}
 	
 	/**
-	 * Zorgt ervoor dat de log database bestaat.
+	 * Zorgt ervoor dat de logtabellen worden aangemaakt, mochten ze nog niet bestaan.
 	 */
 	public void setQueryLogTable(){
 		
@@ -41,6 +45,7 @@ public class UserStatistics {
 		try {
 			st = con.createStatement();
 			
+			//Maakt de eerste tabel aan die alle parameters opslaat.
 			String query = "CREATE IF NOT EXISTS TABLE `querylog`(`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,  "
 					+ "`timestamp` INT UNSIGNED NOT NULL,  "
 					+ "`start` INT UNSIGNED NOT NULL,  "
@@ -49,8 +54,8 @@ public class UserStatistics {
 					+ "PRIMARY KEY (`id`));";
 			
 			int correct = st.executeUpdate(query);
-			System.out.println("Dit returned hij: " + correct);
 			
+			//Maakt de tweede tabel aan, die onthoudt welke factoren worden gevraagd en hoe vaak.
 			String query2 = "CREATE IF NOT EXISTS TABLE `factorlog`(`factor` INT UNSIGNED NOT NULL, `count` INT UNSIGNED NULL, PRIMARY KEY (`factor`));";
 			int correct2 = st.executeUpdate(query2);
 			
@@ -61,6 +66,12 @@ public class UserStatistics {
 		
 	}
 	
+	/**
+	 * Voegt de gebruikerstatistieken toe aan de tabellen.
+	 * @param start Het startpunt van de grafiek.
+	 * @param extent De grootte van het domein.
+	 * @param factor De aggregatiefactor.
+	 */
 	public void addUserStatistic(long start, long extent, long factor) {
 		
 		//Maakt een timestamp aan
