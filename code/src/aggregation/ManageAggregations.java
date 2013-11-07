@@ -152,8 +152,8 @@ public class ManageAggregations {
 				}
 			}
 			Long givenSecFac  = new Long(theoreticalQueryFacs.get(i)) * 60;
-			// Sec
-			Long storedSecFac = factor==1 ? factor : new Long(factor) * 60;
+			// convert to seconds
+			Long storedSecFac = new Long(factor) * 60;
 			queryToFacResCosTupleMap.put(givenSecFac, new Triple(storedSecFac, resolution, min_cost));
 			if(min_cost>3000.0)
 				System.out.println("plot query "+givenSecFac+" with res "+resolution+" using factor "+storedSecFac+" for cost "+min_cost);
@@ -166,8 +166,8 @@ public class ManageAggregations {
 	}
 	
 	private long determindeFastDataSet(long givenFactor){
-		// In case no other factor fits, use unaggregated data
-		long resultingFactor = 1;
+		// In case no other factor fits, use unaggregated data (60 instead of 1, as 60 is indexed and optimized on data types)
+		long resultingFactor = 60;
 		// Find largest factor that is smaller or equal to 2 times the query factor (in case this is exactly 2 times, we can plot using 300 data points)
 		// In case no such factor exists, find the largest factor that is smaller than the query factor. 
 		// With this factor we can combine aggregates until more measurements than queried are calculated from which we plot the queried parts
@@ -216,19 +216,17 @@ public class ManageAggregations {
 		}
 		Statement st;
 		try {
-				System.out.println("Creating aggregated dataset with factor: "+(factorInSeconds));
-				String createTable = "create table dataset_"+(factorInSeconds)+" (timed long, PEGEL double)";
-				
-				String insertData = "insert into dataset_"+(factorInSeconds)+" (timed, PEGEL) select timed, avg(PEGEL) from dataset_1 group by timed div "+(factorInSeconds);
+				System.out.println("Creating aggregated dataset with factor: "+factorInSeconds);
+				// Create table
+				String createTable = "CREATE TABLE dataset_"+factorInSeconds+" (timed INT UNSIGNED, PEGEL FLOAT) ENGINE = MYISAM;";
+				// Insert data
+				String insertData = "INSERT INTO dataset_"+factorInSeconds+" (timed, PEGEL) SELECT timed, avg(PEGEL) FROM dataset_1 GROUP BY timed div "+factorInSeconds;
+				// Index data
+				String createIndex = "CREATE INDEX timed_idx_"+factorInSeconds+" ON dataset_"+factorInSeconds+"(timed)";
 				st = con.createStatement();
-				long starttime = System.currentTimeMillis();
 				st.execute(createTable);
-				System.out.println("Create table time:"+(System.currentTimeMillis()-starttime));
-				
-				starttime = System.currentTimeMillis();
-				Statement st2 = con.createStatement();
-				st2.execute(insertData);
-				System.out.println("insert into time:"+(System.currentTimeMillis()-starttime));
+				st.execute(insertData);
+				st.execute(createIndex);
 				
 				// insert factor into aggregatedFactor list.
 				existingFactors.add(factorInSeconds);
