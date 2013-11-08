@@ -31,7 +31,7 @@ public class Aggregator {
 			List<Integer> Q = new ArrayList<Integer>();			
 			// Fill Q with all prime numbers up to NUM_FACTORS
 			for (int j = 1; j <= NUM_FACTORS; j ++){
-			    if (j>=3000 || isPrime(j))
+			    if (j>=2500 || isPrime(j))
 			        Q.add(j);
 			}
 			

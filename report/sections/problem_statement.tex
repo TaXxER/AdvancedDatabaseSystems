@@ -1,0 +1,27 @@
+The problem is defined as follows: In the Thur Valley, a sensor network is build up to measure the water level in and around the river. This sensor network produces a lot of data which is publicly available for analyzation. The only way the data can be accessed is by a graph which plots about 600 points and therefore, a GROUP BY statement is introduced to collect the data needed for the graph. Because the users need different domains and different group factors, all calculations are done on the fly, which is recourse heavy and can take up a lot of time and is therefore unacceptable.\\
+
+We are provided with the complete dataset of sensordata, running from december 31th 2006 to the 7th of august 2011. Using this dataset, we have been given the task to use smart aggregation levels to speed up the process of plotting the graph.\\
+
+There are several preconditions to solve this problem:
+\begin{itemize}
+\item maintain usage statistics 
+\item re-write queries to use pre-aggregation levels
+\item re-organize pre-aggregation levels
+\item use the graph user interface provided.
+\end{itemize}
+
+After reading the already provided paper ?Graphing of E-Science Data with varying user requirements?, we came up with several subproblems.\\
+
+Problem 1: The user statistics have to be collected.
+By using the graph, the user is providing us with important information about the requested data (the desirable domain and aggregation factors).\\
+
+Problem 2: We are unable to predict the domain and aggregation factors from the beginning.
+Starting from scratch, the desired parameters are unknown. Still, it is unacceptable to provide the user with a slow and recourse heavy system.\\
+
+Problem 3: We need a tool to calculate the optimal aggregation factors.
+After the user statistics are known, a process has to be found to translate these statistics to useful new pre-aggregations. Also, some users would like a more precise dataset in their graph compared to other users. These users are willing to give in on speed.\\
+
+Problem 4: The offset problem needs to be addressed.\\
+
+Problem 5: The graphical user interface needs some bugfixing and some extra features.
+Next to some additional features to provide a better way of accessing the wanted data, we have been given the task to address the bugs present in the GUI.

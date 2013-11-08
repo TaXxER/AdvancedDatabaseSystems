@@ -1,0 +1,9 @@
+\subsection{Problem 1: The user statistics have to be collected}
+On the moment the SQL statement is being constructed to query the database, the aggregation factor and domain are known. At that moment, these parameters are logged for user statistics.
+There are two tables which hold information about the queries. The first table: querylog holds information about every parameter the user is able to affect. Each query results in a new row containing the start point, end point and factor used by the graph and a timestamp when the query was executed. The second table: factorlog holds information about the factors used only: when a query contains a new factor which is not documented set in this table, a new row is appended containing the new aggregation factor. Else the count related to the factor in incremented by one.\\
+
+\subsection{Problem 2: We are unable to predict the domain and aggregation factors from the beginning}
+
+\subsection{Problem 3: We need a tool to calculate the optimal aggregation factors}
+\subsection{Problem 4: The offset problem needs to be addressed}
+\subsection{Problem 5: The graphical user interface needs some bugfixing and some extra features}
