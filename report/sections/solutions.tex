@@ -3,7 +3,13 @@ On the moment the SQL statement is being constructed to query the database, the 
 There are two tables which hold information about the queries. The first table: querylog holds information about every parameter the user is able to affect. Each query results in a new row containing the start point, end point and factor used by the graph and a timestamp when the query was executed. The second table: factorlog holds information about the factors used only: when a query contains a new factor which is not documented set in this table, a new row is appended containing the new aggregation factor. Else the count related to the factor in incremented by one.\\
 
 \subsection{Problem 2: We are unable to predict the domain and aggregation factors from the beginning}
+To provide a fast response time from the beginning, a set of preaggregtions can be calculated based on the expected queries of users. 
 
+TODO: Niek, hoe is dit precies gedaan?
+
+The standard query simply selects all database entries between two points of time and will aggregate the result set until there are only 600 or fewer (min is 300) points left. Given a set of pre-aggregation tables, we can simply make the standard query use a pre-aggregated dataset instead of the entire database. To determine what pre-aggregation table to use in the query, the following method is executed. Check for all aggregation factors : Is it there an aggregation factor where the following expression is true - 0.5 * aggregationFactor < requiredAggregationFactor < aggregationFactor, then the aggregation dataset with this factor should be used, as it will result between 300 - 600 points without requiring run-time aggregation. Otherwise, find largest pre-aggregation factor in the set that is smaller then the required aggregation factor. Using this aggregations dataset will result in the least amount of run-time aggregations to provide between 300-600 aggregations.
+
+While this method is not very precise, it does however make sure a minimum of run-time aggregations are done, making the system fast. We believe that for new users, this is a good way to get aquinted with the dataset.
 \subsection{Problem 3: We need a tool to calculate the optimal aggregation factors}
 \subsection{Problem 4: The offset problem needs to be addressed}
 \subsection{Problem 5: The graphical user interface needs some bugfixing and some extra features}
