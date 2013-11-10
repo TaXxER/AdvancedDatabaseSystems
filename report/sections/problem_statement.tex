@@ -14,22 +14,24 @@ There are several preconditions to solve this problem:
 \item use the graph user interface provided.
 \end{itemize}
 
-After reading the already provided paper ?Graphing of E-Science Data with varying user requirements?, we came up with several sub problems.\\
+After reading the already provided paper "Graphing of E-Science Data with varying user requirements", we came up with several sub problems.\\
 
-Problem 1: The user statistics have to be collected.
+\textbf{Problem 1: The user statistics have to be collected.}\\
 By using the graph, the user is providing us with important information about the requested data (the desirable domain and aggregation factors).\\
 
-Problem 2: We require a set of pre-aggregated datasets at the start of the program that can be used to serve the user with fast response time from the beginning without any user statistics.
+\textbf{Problem 2: We require a set of pre-aggregated datasets at the start of the program.}\\
+These datasets can be used to serve the user with fast response time from the beginning without any user statistics.
 
-Problem 3: We require a way to determine what pre-aggregated dataset can be used to serve a users request.
+\textbf{Problem 3: We require a way to determine what pre-aggregated dataset can be used to serve a users request.}
 
 %Problem 2: We are unable to predict the domain and aggregation factors from the beginning.
 %Starting from scratch, the desired parameters are unknown. Still, it is unacceptable to provide the user with a slow and recourse heavy system.\\
 
-Problem 4: We need a tool to calculate the optimal aggregation factors.
+\textbf{Problem 4: We need a tool to calculate the optimal aggregation factors.}\\
 After the user statistics are known, a process has to be found to translate these statistics to useful new pre-aggregations. Also, some users would like a more precise dataset in their graph compared to other users. These users are willing to give in on speed.\\
 
-Problem 5: The offset problem needs to be addressed.\\
+\textbf{Problem 5: The offset problem needs to be addressed.}\\
+As described in the paper\cite{wombacher2011}, the pre-aggregations are based on not only an factor but also an offset. For example: if the domain of the dataset is 0-11 and your pre-aggregations are 0-2, 3-5, 6-8, 9-11 (factor = 3) Then if you try to access the domain 4-7 (factor = 3 as well), then you cannot use 3-5 and 6-8 directly, because these include data which is not in the domain 4-7. 
 
-Problem 6: The graphical user interface needs some bug-fixing and some extra features.
+\textbf{Problem 6: The graphical user interface needs some bugfixing and some extra features.}\\
 Next to some additional features to provide a better way of accessing the wanted data, we have been given the task to address the bugs present in the GUI.
