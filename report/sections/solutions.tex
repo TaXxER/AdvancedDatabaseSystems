@@ -42,3 +42,12 @@ The second error we came across was that the domain scrollbar left side could su
 
 Apart from the errors, we also included some extra features in the GUI. The horizontal scrollbar, used for updating the domain of the graph, was not implemented very well. When an user zooms in and reaches (for example) the domain that 600 points would represent a day, the "to-right"-button and the "go-left"-botton would shift the domain with several days. Therefore, navigating to the right or left on this level of detail would be very inconvenient.
 To solve this inconvenience, we introduced two buttons who first look at the level of detail and then calculate to which domain the graph should be shifted. If the scrollbar is beginning at point x and the extent of the scrollbar is y, the button "to-right" lets the domain start from x+(y/2) and uses the same extent as before the shifting. Of course, the "to-left" button uses x-(y/2) to determine the start of the domain in the graph.
+
+\subsection{Problem 7: Optimizing the inevitable load operations}
+Even with a good pre-aggregated dataset to use, some data will have to be loaded from the database inevitably and this will remain to be the bottleneck of the graph plotting process. Next to limiting the number of rows to load, there are other options to use to decrease the load time even further. 
+
+The simplest example of this idea is to remove the id column from the aggregated datasets, so only the water level and a timestamp remain. Furthermore, the smallest possible data types are used for the values of the pre-aggregated datasets (unsigned int for the timestamp, float for water level). Together this causes each row to be smaller and thus resulting in less data for the same select query and possible less page I/O's.
+
+Another example is the choice to use the MyISAM storage engine instead of the default InnoDB engine for the aggregated datasets as this first one performs better for read operations.
+
+Finally, we also created a B+ Tree index on the timed column to minimize the amount of page loads required to find the page containing the correct rows. As the aggregated datasets are sorted on the values of the timed column, this is a clustered index and thus the search costs to find the correct first page can be estimated to be around 2. 
