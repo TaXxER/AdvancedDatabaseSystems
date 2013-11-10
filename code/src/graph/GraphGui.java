@@ -68,7 +68,7 @@ public class GraphGui extends ApplicationFrame{
 			//					"PEGEL",
 			//					"pegel_andelfingen2",
 			//					null);
-			this.timeseries = new JdbcYIntervalSeries("Pegel Andelfingen2",
+			this.timeseries = new JdbcYIntervalSeries("Pegel at Andelfingen",
 					"jdbc:mysql://localhost:3306/ads",
 					"com.mysql.jdbc.Driver",
 					"ads_account", 
@@ -88,7 +88,7 @@ public class GraphGui extends ApplicationFrame{
 		private JFreeChart createChart()
 		{
 			xydataset = createPegelAndelfingen();
-			JFreeChart jfreechart = ChartFactory.createTimeSeriesChart("Waterheight", "Date", "Pegel", xydataset, true, true, false);
+			JFreeChart jfreechart = ChartFactory.createTimeSeriesChart("The Thur Valley", "Date", "Waterheight", xydataset, true, true, false);
 
 			XYPlot xyplot = jfreechart.getXYPlot();
 			domainAxis = xyplot.getDomainAxis();
@@ -96,7 +96,7 @@ public class GraphGui extends ApplicationFrame{
 			domainAxis.setUpperMargin(0.0D);
 			YIntervalSeries series = ((YIntervalSeriesCollection) xydataset).getSeries(0);
 			domainAxis.setRange(Math.floor(series.getX(0).doubleValue()), Math.ceil(series.getX(series.getItemCount()-1).doubleValue()));
-			rangeAxis = new NumberAxis("Pegel2");
+			rangeAxis = new NumberAxis("Waterheight");
 			DeviationRenderer deviationrenderer = new DeviationRenderer(true, false);
 			deviationrenderer.setSeriesStroke(0, new BasicStroke(3F, 1, 1));
 			deviationrenderer.setSeriesStroke(0, new BasicStroke(3F, 1, 1));
@@ -331,7 +331,7 @@ public class GraphGui extends ApplicationFrame{
 	{
 		UIManager.put("ScrollBarUI", GraphGuiScrollBarUI.class.getName());
 
-		GraphGui test = new GraphGui("GraphGUI demo");
+		GraphGui test = new GraphGui("Pegel Andelfingen waterheight");
 		test.pack();
 		RefineryUtilities.centerFrameOnScreen(test);
 		test.setVisible(true);
