@@ -20,14 +20,15 @@ import java.util.Set;
  * This class manages the aggregation levels.
  * 
  * On creation, it retrieves the existing aggregation levels from the database.
- * It can calculate the optimal existing aggregation level to use. (determineDataset( givenFactor))
  * 
  * Through this class, new aggregation levels can be created and existing ones removed.
  * 
  * It has also functions to calculate the percentage of the total size a factor
  * aggregation requires, just as the percentage of the total size of all current aggregations.
  * 
- * @author David
+ * It also contains the method determineDataset() that can be used to determine what (if any)
+ * existing pre-aggregation dataset to use in the query to retrieve the datapionts to plot.
+ * This method takes the fast or precise preference into account.
  *
  */
 
@@ -47,7 +48,7 @@ public class ManageAggregations {
 		existingFactors = new HashSet<Long>();
 		this.con = con;
 		this.preciseMode = preciseMode;
-		addExistingDatasets();
+		retrieveExistingDatasets();
 		
 		// INSTELLEN: Wel of niet eerst alle aggregates verwijderen
 		// removeAggregates(existingFactors);
@@ -209,6 +210,11 @@ public class ManageAggregations {
 			createAggregate(secFac);
 	}
 	
+	/**
+	 * This method creates a new pre-aggregation dataset in the database.
+	 * 
+	 * @param factorInSeconds may not existing in dataset already.
+	 */
 	private void createAggregate(long factorInSeconds){
 		if(con==null) {
 			System.out.println("ManageAggregations: no connection");
@@ -245,6 +251,12 @@ public class ManageAggregations {
 			removeAggregate(secFac);
 	}
 	
+	/**
+	 * This method removes a pre-aggregation level, both from the database 
+	 * as from the local list of pre-aggregation levels.
+	 * 
+	 * @Requires factorInSeconds to be a currently used pre-aggregation level.
+	 */
 	private void removeAggregate(long factorInSeconds){
 		if(con==null) {
 			System.out.println("ManageAggregations: no connection");
@@ -268,7 +280,7 @@ public class ManageAggregations {
 	}
 	
 	// Retrieves existing aggregated datasets from database.
-	private void addExistingDatasets(){			
+	private void retrieveExistingDatasets(){			
 		if(con==null) {
 			System.out.println("ManageAggregations: no connection");
 			return; 
