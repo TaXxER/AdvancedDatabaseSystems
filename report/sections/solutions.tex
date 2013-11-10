@@ -17,11 +17,12 @@ A test run showed it to be infeasible to solve the ILP for all queries theoretic
 \subsubsection{Fast method}
 The standard query simply selects all database entries between two points of time and will aggregate the result set until there are only 600 or fewer (min is 300) points left. Given a set of pre-aggregation tables, we can simply make the standard query use a pre-aggregated dataset instead of the entire database. To determine what pre-aggregation table to use in the query, the following method is executed. Check for all aggregation factors: Is it there an aggregation factor where the following expression is true 0.5 * aggregationFactor < requiredAggregationFactor < aggregationFactor, then the aggregation dataset with this factor should be used, as it will result between 300 - 600 points without requiring run-time aggregation. Otherwise, find largest pre-aggregation factor in the set that is smaller then the required aggregation factor. Using this aggregations dataset will result in the least amount of run-time aggregations to provide between 300-600 aggregations.
 
-\subsubsection{Precise method}
-
 %TODO: hoe bepaald de precise method welke pre-aggregated dataset gebruikt word voor de user query?
 
 While this method is not very precise, it does however make sure a minimum of run-time aggregations are done, making the system fast. We believe that for new users, this is a good way to get aquinted with the dataset.
+
+\subsubsection{Precise method}
+
 \subsection{Problem 4: We need a tool to calculate the optimal aggregation factors}
 \subsection{Problem 5: The offset problem needs to be addressed}
 \subsection{Problem 6: The graphical user interface needs some bugfixing and some extra features}
