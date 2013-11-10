@@ -1,10 +1,10 @@
-The problem is defined as follows: When representing this data in a graph a maximum resolution of points is encountered that is often smaller then the amount of datapoints. To solve this issue, the entire dataset is seperated in a maximum resolution amount of blocks, and of each of these blocks the average is calculated and shown as a datapoint in the graph. The amount of dataset values that is combined into a single datapoint in the graph is called the factor. When users of the graph request data over a large period, this will result in a high amount of data being requested from the the database that in turn results in a high amount of loading time. This causes the average response time to plot a graph to become unacceptable high.\\
+The problem is defined as follows: When representing this data in a graph a maximum resolution of points is encountered that is often smaller then the amount of data points. To solve this issue, the entire dataset is separated in a maximum resolution amount of blocks, and of each of these blocks the average is calculated and shown as a data point in the graph. The amount of dataset values that is combined into a single data point in the graph is called the factor. When users of the graph request data over a large period, this will result in a high amount of data being requested from the the database that in turn results in a high amount of loading time. This causes the average response time to plot a graph to become unacceptable high.\\
 
 %the average value of a number of values is calculated and this average is shown as a datapoint in the graph.
 
 % The only way the data can be accessed is by a graph which plots about 600 points and therefore, a GROUP BY statement is introduced to collect the data needed for the graph. Because the users need different domains and different group factors, all calculations are done on the fly, which is recourse heavy and can take up a lot of time and is %therefore unacceptable.\\
 
-We are provided with the complete dataset of sensordata, running from december 31th 2006 to the 7th of august 2011. Using this dataset, we have been given the task to use pre-aggregations to speed up the response time in the process of plotting the graph.\\
+We are provided with the complete dataset of sensor data, running from 31st of December 2006 to the 7th of august 2011. Using this dataset, we have been given the task to use pre-aggregations to speed up the response time in the process of plotting the graph.\\
 
 There are several preconditions to solve this problem:
 \begin{itemize}
@@ -14,7 +14,7 @@ There are several preconditions to solve this problem:
 \item use the graph user interface provided.
 \end{itemize}
 
-After reading the already provided paper ?Graphing of E-Science Data with varying user requirements?, we came up with several subproblems.\\
+After reading the already provided paper ?Graphing of E-Science Data with varying user requirements?, we came up with several sub problems.\\
 
 Problem 1: The user statistics have to be collected.
 By using the graph, the user is providing us with important information about the requested data (the desirable domain and aggregation factors).\\
@@ -31,5 +31,5 @@ After the user statistics are known, a process has to be found to translate thes
 
 Problem 5: The offset problem needs to be addressed.\\
 
-Problem 6: The graphical user interface needs some bugfixing and some extra features.
+Problem 6: The graphical user interface needs some bug-fixing and some extra features.
 Next to some additional features to provide a better way of accessing the wanted data, we have been given the task to address the bugs present in the GUI.
