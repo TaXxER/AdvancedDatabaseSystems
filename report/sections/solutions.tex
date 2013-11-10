@@ -26,3 +26,11 @@ While this method is not very precise, it does however make sure a minimum of ru
 \subsection{Problem 4: We need a tool to calculate the optimal aggregation factors}
 \subsection{Problem 5: The offset problem needs to be addressed}
 \subsection{Problem 6: The graphical user interface needs some bugfixing and some extra features}
+From the beginning of the project, we were designated to use the jFreeChart library and the included files to update the graph using the new data points. The task description mentioned already that the GUI still contained some errors and our goal was to fix them.
+
+The first error we came across was that the JdbcYIntervalSeries' update method needed a data conversion to handle the input from the database. The epoch time in the database is defined in seconds, but the epoch time needed in the graph must be defined in milliseconds. To handle this problem, we updated all the methods in JdbcYIntervalSeries by multiplying the time with 1000 and dividing the time variables before the query with 1000.
+
+The second error we came across was that the domain scrollbar left side could surpass his right side. Therefore, the extent became zero and an exception was thrown by jFreeChart. To fix this bug, we updated the adjustmentValueChanged() function in GraphGui class. It now checks if the extent evaluates to zero and updates this variable with a constant factor if so.
+
+Apart from the errors, we also included some extra features in the GUI. The horizontal scrollbar, used for updating the domain of the graph, was not implemented very well. When an user zooms in and reaches (for example) the domain that 600 points would represent a day, the "to-right"-button and the "go-left"-botton would shift the domain with several days. Therefore, navigating to the right or left on this level of detail would be very inconvenient.
+To solve this inconvenience, we introduced two buttons who first look at the level of detail and then calculate to which domain the graph should be shifted. If the scrollbar is beginning at point x and the extent of the scrollbar is y, the button "to-right" lets the domain start from x+(y/2) and uses the same extent as before the shifting. Of course, the "to-left" button uses x-(y/2) to determine the start of the domain in the graph.
