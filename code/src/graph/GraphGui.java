@@ -88,7 +88,7 @@ public class GraphGui extends ApplicationFrame{
 		private JFreeChart createChart()
 		{
 			xydataset = createPegelAndelfingen();
-			JFreeChart jfreechart = ChartFactory.createTimeSeriesChart("Time", "Date", "Pegel", xydataset, true, true, false);
+			JFreeChart jfreechart = ChartFactory.createTimeSeriesChart("Waterheight", "Date", "Pegel", xydataset, true, true, false);
 
 			XYPlot xyplot = jfreechart.getXYPlot();
 			domainAxis = xyplot.getDomainAxis();
@@ -203,7 +203,6 @@ public class GraphGui extends ApplicationFrame{
 			jpanel2.setLayout(new BoxLayout(jpanel2, BoxLayout.Y_AXIS));
 			jpanel2.add(scrollbarh);
 			JPanel jpanel21 = new JPanel();
-			jpanel21.add(new JLabel("scroll factor"));
 //			b.addActionListener(this);
 			jpanel21.add(toLeft);
 			jpanel21.add(toRight);
